@@ -1,7 +1,11 @@
-import '../styles/globals.css'
+import { SocketWrapper } from "../src/store/SocketContext";
 
 function MyApp({ Component, pageProps }) {
-  return <Component {...pageProps} />
+  return (
+    <SocketWrapper>
+      <Component {...pageProps} />
+    </SocketWrapper>
+  );
 }
 
-export default MyApp
+export default MyApp;

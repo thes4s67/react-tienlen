@@ -1,7 +1,8 @@
 class Player {
-  constructor(idx, name) {
+  constructor(idx, name, id) {
     this.hand = [];
     this.idx = idx;
+    this.id = id;
     this.name = name;
   }
   giveCard = (card) => {

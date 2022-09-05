@@ -3,7 +3,10 @@ import Deck from "./deck.js";
 import Player from "./player.js";
 
 class Game {
-  constructor() {
+  constructor(host, code) {
+    this.host = host;
+    this.code = code;
+    this.active = null;
     this.players = [];
     this.playerTurn = null;
     this.gameInfo = {
@@ -19,7 +22,7 @@ class Game {
   }
   addPlayer = (p) => {
     if (this.players.length < 4) {
-      this.players.push(new Player(p.idx, p.name));
+      this.players.push(new Player(p.idx, p.name, p.id));
     }
   };
   isGreaterHand = (sum, suit, len) => {
@@ -80,6 +83,13 @@ class Game {
         let hand = this.players[i].hand;
         this.players[i].hand = this.sort(hand);
       }
+      return {
+        players: this.players,
+        code: this.code,
+        host: this.host,
+        playerTurn: this.playerTurn,
+        gameInfo: this.gameInfo,
+      };
     } else {
       throw new Error("Need at least 2 players to start");
     }
