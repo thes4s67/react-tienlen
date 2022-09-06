@@ -7,88 +7,66 @@ class Game {
     this.host = host;
     this.code = code;
     this.started = false;
-    this.players = [];
-    this.playerTurn = null;
     this.gameInfo = {
-      lastHandSum: null,
-      lastHandLen: null,
-      //the greatest suit
-      lastHandSuit: null,
-      //if last hand contained 2s
-      lastHandTwo: false,
+      lowestCard: null,
+      deck: null,
+      players: [],
+      playerTurn: null,
+      firstHand: true,
+      prevHand: [],
       //current player hand contains 2
       tempHandTwo: false,
     };
   }
   addPlayer = (p) => {
-    if (this.players.length < 4) {
-      this.players.push(new Player(p.idx, p.name, p.id));
+    if (this.gameInfo.players.length < 4) {
+      this.gameInfo.players.push(new Player(p.idx, p.name, p.id));
     }
   };
-  isGreaterHand = (sum, suit, len) => {
-    let isGreater = false;
-    const gameInfo = this.gameInfo;
-    //if same cards are played but different suits
-    if (Math.floor(sum) === Math.floor(this.lastHandSum))
-      isGreater = suit > this.lastHandSuit ? true : false;
-    if (sum > this.lastHandSuit) isGreater = true;
-    if (isGreater) {
-      //this hand beats prev hand
-      this.lastHandSum = sum;
-      this.lastHandLen = len;
-      this.lastHandSuit = suit;
-    }
-    return isGreater;
-  };
-  isValidPlay = (hand) => {
-    //if players # of cards != last players hand
-    if (hand.length !== this.lastHandLen) return false;
-  };
-  isBomb = () => {};
   setPlayerTurn = (idx) => {
     //set whose turn it is
-    this.playerTurn = idx;
+    this.gameInfo.playerTurn = idx;
   };
   sort = (hand) => {
     return hand.sort((a, b) => a - b);
   };
   start = () => {
     //check how many players
-    if (this.players.length > 1) {
+    if (this.gameInfo.players.length > 1) {
       const deck = new Deck(cards);
       //randomize the deck
       deck.shuffle();
       // //create players for game
       // for (let i = 0; i < this.init.length; i++) {
-      //   this.players.push(new Player(this.init[i].idx, this.init[i].name));
+      //   this.gameInfo.players.push(new Player(this.init[i].idx, this.init[i].name));
       // }
 
       let pIdx = 0;
       let min = 20;
       //deal 1 card to each player at a time until each player has 13 cards
-      for (let i = 0; i < this.players.length * 13; i++) {
+      for (let i = 0; i < this.gameInfo.players.length * 13; i++) {
         const card = deck.deal();
-        this.players[pIdx].giveCard(card);
+        this.gameInfo.players[pIdx].giveCard(card);
         //we find out who starts first
         if (card < min) this.setPlayerTurn(pIdx);
         min = Math.min(min, card);
-        if (pIdx === this.players.length - 1) {
+        if (pIdx === this.gameInfo.players.length - 1) {
           pIdx = 0;
         } else {
           pIdx++;
         }
       }
       //sort each players deck
-      for (let i = 0; i < this.players.length; i++) {
-        let hand = this.players[i].hand;
-        this.players[i].hand = this.sort(hand);
+      for (let i = 0; i < this.gameInfo.players.length; i++) {
+        let playerCards = this.gameInfo.players[i].cards;
+        this.gameInfo.players[i].cards = this.sort(playerCards);
       }
+      this.gameInfo.deck = deck;
+      this.gameInfo.lowestCard = min;
       this.started = true;
       return {
-        players: this.players,
         code: this.code,
         host: this.host,
-        playerTurn: this.playerTurn,
         gameInfo: this.gameInfo,
       };
     } else {

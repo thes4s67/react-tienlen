@@ -1,24 +1,17 @@
 import { useEffect, useState } from "react";
-import {
-  Container,
-  Box,
-  Button,
-  Typography,
-  TextField,
-  Avatar,
-  Popover,
-} from "@mui/material";
+import { Container, Box, Button, Typography, Avatar } from "@mui/material";
 import BackOfCard from "../../../src/components/PlayCard/BackOfCard";
 import PlayCard from "../../../src/components/PlayCard";
 import { getPlayerId } from "../../../src/utils";
 import axios from "axios";
 import GamePrompt from "../../../src/components/GamePrompt";
+import MessageBox from "../../../src/components/Message";
+import { useSocket } from "../../../src/store/SocketContext";
 
 const GameRoom = ({ id }) => {
   const [gameInfo, setGameInfo] = useState({});
   const [timer, setTimer] = useState(40);
-  const [openChat, setOpenChat] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
+  const { socket } = useSocket();
   const arrTest = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
   useEffect(() => {
@@ -27,7 +20,10 @@ const GameRoom = ({ id }) => {
         playerId: getPlayerId(),
       })
       .then((c) => setGameInfo(c.data));
-  }, []);
+    socket.on("newMessage", (args) => {
+      console.log(args, "this works bro");
+    });
+  }, [socket]);
 
   const timerCountDown = () => {
     setTimeout(() => {
@@ -120,7 +116,17 @@ const GameRoom = ({ id }) => {
                     {!gameInfo.isHost &&
                     !gameInfo.seated &&
                     gameInfo.players < 4 ? (
-                      <Button variant="contained">Join</Button>
+                      <Button
+                        variant="contained"
+                        onClick={async () => {
+                          socket.emit("joinGame", { code: id });
+                          const { data } = await axios.post(
+                            "http://localhost:5001:/api/join"
+                          );
+                        }}
+                      >
+                        Join
+                      </Button>
                     ) : null}
                   </Box>
                 )}
@@ -152,58 +158,7 @@ const GameRoom = ({ id }) => {
               })}
             </Box>
           </Box>
-          <Box
-            id="chat-box"
-            sx={{
-              backgroundColor: "#2a2929",
-              boxShadow: "#333 0 0 7px",
-              p: 1,
-              display: "flex",
-            }}
-          >
-            <TextField
-              sx={{ backgroundColor: "#fff", flexGrow: 0.8 }}
-              placeholder="Type your message..."
-              inputProps={{ maxLength: 200 }}
-            />
-            <Button variant="contained" sx={{ mr: 2 }}>
-              Send
-            </Button>
-            <Button
-              variant="contained"
-              sx={{ flexGrow: 0.2 }}
-              onClick={(e) => {
-                setAnchorEl(e.currentTarget);
-                setOpenChat(!openChat);
-              }}
-            >
-              Show Chat History
-            </Button>
-          </Box>
-          <Popover
-            sx={{ mt: -2 }}
-            open={openChat}
-            onClose={() => setOpenChat(false)}
-            anchorEl={anchorEl}
-            anchorOrigin={{
-              vertical: "top",
-              horizontal: "center",
-            }}
-            transformOrigin={{
-              vertical: "bottom",
-              horizontal: "center",
-            }}
-          >
-            <Box sx={{ p: 2, height: 150 }}>
-              <Typography>Test</Typography>
-              <Typography>Test</Typography>
-              <Typography>Test</Typography>
-              <Typography>Test</Typography>
-              <Typography>Test</Typography>
-              <Typography>Test</Typography>
-              <Typography>Test</Typography>
-            </Box>
-          </Popover>
+          <MessageBox code={id} />
         </Container>
       )}
     </>

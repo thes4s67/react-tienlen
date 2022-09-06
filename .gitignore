@@ -5,6 +5,7 @@
 /app/.next
 /server/node_modules
 /server/todo.txt
+
 /.pnp
 .pnp.js
 

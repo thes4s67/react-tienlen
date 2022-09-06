@@ -9,7 +9,6 @@ export const SocketWrapper = ({ children }) => {
   useEffect(() => {
     const _socket = io("http://localhost:5001");
     setSocket(_socket);
-    console.log(_socket, "this updateed");
     return () => _socket.close();
     //TODO: review this dependency ???
   }, [setSocket]);
