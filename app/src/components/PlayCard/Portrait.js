@@ -1,16 +1,16 @@
 import { Box, Typography } from "@mui/material";
-import JackOfSpade from "./../FaceCards/JackOfSpade";
-import JackOfClub from "./../FaceCards/JackOfClub";
-import JackOfDiamond from "./../FaceCards/JackOfDiamond";
-import JackOfHeart from "./../FaceCards/JackOfHeart";
-import QueenOfSpade from "./../FaceCards/QueenOfSpade";
-import QueenOfClub from "./../FaceCards/QueenOfClub";
-import QueenOfDiamond from "./../FaceCards/QueenOfDiamond";
-import QueenOfHeart from "./../FaceCards/QueenOfHeart";
-import KingOfSpade from "./../FaceCards/KingOfSpade";
-import KingOfClub from "./../FaceCards/KingOfClub";
-import KingOfDiamond from "./../FaceCards/KingOfDiamond";
-import KingOfHeart from "./../FaceCards/KingOfHeart";
+import JackOfSpade from "./FaceCards/JackOfSpade";
+import JackOfClub from "./FaceCards/JackOfClub";
+import JackOfDiamond from "./FaceCards/JackOfDiamond";
+import JackOfHeart from "./FaceCards/JackOfHeart";
+import QueenOfSpade from "./FaceCards/QueenOfSpade";
+import QueenOfClub from "./FaceCards/QueenOfClub";
+import QueenOfDiamond from "./FaceCards/QueenOfDiamond";
+import QueenOfHeart from "./FaceCards/QueenOfHeart";
+import KingOfSpade from "./FaceCards/KingOfSpade";
+import KingOfClub from "./FaceCards/KingOfClub";
+import KingOfDiamond from "./FaceCards/KingOfDiamond";
+import KingOfHeart from "./FaceCards/KingOfHeart";
 
 const Portrait = ({ value, suit }) => {
   const getSuit = (v) => {

@@ -6,6 +6,7 @@ import { setPlayerId } from "../src/utils";
 
 const Home = () => {
   const { socket, setSocket } = useSocket();
+  const [value, setValue] = useState("");
   // useEffect(() => {
   //   const _socket = io("http://localhost:5001");
   //   setSocket(_socket);
@@ -19,7 +20,7 @@ const Home = () => {
             <Button
               onClick={async () => {
                 const { data } = await axios.post(
-                  "http://localhost:5001/api/register"
+                  "http://localhost:5001/api/host"
                 );
                 setPlayerId(data.playerId);
                 socket.emit("createGame", {
@@ -41,10 +42,19 @@ const Home = () => {
             >
               <TextField
                 sx={{ flexGrow: 0.7, mr: 2 }}
-                label="Outlined"
+                value={value}
+                onChange={(e) => setValue(e.target.value.toUpperCase())}
+                inputProps={{ maxLength: 5 }}
+                label="Game Room"
                 variant="outlined"
               />
-              <Button sx={{ flexGrow: 0.3 }} variant="contained">
+              <Button
+                sx={{ flexGrow: 0.3 }}
+                variant="contained"
+                onClick={() =>
+                  window.open(`http://localhost:3000/game/${value}`, "_self")
+                }
+              >
                 Join Game
               </Button>
             </Box>

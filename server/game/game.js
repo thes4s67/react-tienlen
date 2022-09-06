@@ -6,7 +6,7 @@ class Game {
   constructor(host, code) {
     this.host = host;
     this.code = code;
-    this.active = null;
+    this.started = false;
     this.players = [];
     this.playerTurn = null;
     this.gameInfo = {
@@ -83,6 +83,7 @@ class Game {
         let hand = this.players[i].hand;
         this.players[i].hand = this.sort(hand);
       }
+      this.started = true;
       return {
         players: this.players,
         code: this.code,

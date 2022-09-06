@@ -2,12 +2,12 @@ import { Box } from "@mui/material";
 const BackOfCard = ({ idx, side }) => {
   return (
     <Box
-      sx={{ mt: idx !== 0 && side ? -20 : 0, ml: idx !== 0 && !side ? -5 : 0 }}
+      sx={{ mt: idx !== 0 && side ? -9 : 0, ml: idx !== 0 && !side ? -6 : 0 }}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width={100}
-        height={side ? 200 : 200}
+        width={side ? 100 : 90}
+        height={side ? 90 : 95}
         viewBox="0 0 167.184 242.862"
         xmlSpace="preserve"
       >

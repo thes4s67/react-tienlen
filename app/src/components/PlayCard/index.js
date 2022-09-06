@@ -1,5 +1,5 @@
 import { Card, Box, Typography } from "@mui/material";
-import Portrait from './Portrait';
+import Portrait from "./Portrait";
 
 const PlayCard = ({ value, idx, suit }) => {
   const getValue = (v) => {
@@ -23,7 +23,7 @@ const PlayCard = ({ value, idx, suit }) => {
         ml: idx !== 0 ? -5 : 0,
         cursor: "pointer",
         width: 100,
-        height: 250,
+        height: 150,
         // zIndex: idx === 0 ? 9999 : 0,
         mt: idx === 0 ? -1 : 0,
       }}
@@ -53,7 +53,7 @@ const PlayCard = ({ value, idx, suit }) => {
           justifyContent: "center",
         }}
       >
-       <Portrait value={value} suit={suit}/>
+        <Portrait value={value} suit={suit} />
       </Box>
       <Box
         sx={{
