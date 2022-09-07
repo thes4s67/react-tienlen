@@ -1,30 +1,74 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Container, Box, Button, Typography, Avatar } from "@mui/material";
 import BackOfCard from "../../../src/components/PlayCard/BackOfCard";
 import PlayCard from "../../../src/components/PlayCard";
-import { getPlayerId } from "../../../src/utils";
-import axios from "axios";
 import GamePrompt from "../../../src/components/GamePrompt";
 import MessageBox from "../../../src/components/Message";
 import { useSocket } from "../../../src/store/SocketContext";
 
 const GameRoom = ({ id }) => {
   const [gameInfo, setGameInfo] = useState({});
+  const [cards, setCards] = useState([]);
   const [timer, setTimer] = useState(40);
   const { socket } = useSocket();
   const arrTest = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
   useEffect(() => {
-    axios
-      .post(`http://localhost:5001/api/games/${id}`, {
-        playerId: getPlayerId(),
-      })
-      .then((c) => setGameInfo(c.data));
+    if (Object.keys(gameInfo).length === 0) {
+      socket.emit("getInitGameInfo", { code: id });
+    }
+
+    socket.on("initGameInfo", (args) => {
+      setGameInfo(args);
+    });
+    //functional update to prevent from multiple updates colliding
+    const updateEvent = (name, value) => {
+      if (name !== "cards") {
+        setGameInfo((prev) => ({ ...prev, [name]: value }));
+      } else {
+        setCards(value);
+      }
+    };
+    socket.on("updateGameInfo", (args) => {
+      if (args.players) {
+        updateEvent("players", args.players);
+      }
+      if (args.started) {
+        updateEvent("started", args.started);
+      }
+      if (args.seatingOrder) {
+        updateEvent("seatingOrder", args.seatingOrder);
+        console.log(args.seatingOrder, "this is the seating order");
+      }
+      if (args.playersCards) {
+        updateEvent("playersCards", args.playersCards);
+      }
+      if (args.prevHand) {
+        updateEvent("prevHand", args.prevHand);
+      }
+    });
+    socket.on("updatePlayerInfo", (args) => {
+      if (args.seated) {
+        updateEvent("seated", args.seated);
+      }
+      if (args.idx) {
+        updateEvent("idx", args.idx);
+      }
+      if (args.cards) {
+        updateEvent("cards", args.cards);
+      }
+    });
     socket.on("newMessage", (args) => {
       console.log(args, "this works bro");
     });
-  }, [socket]);
+  }, [socket, gameInfo, cards]);
 
+  const handlePlayCard = (i) => {
+    const tempCards = cards;
+    console.log(i);
+    tempCards[i] = { ...tempCards[i], active: !tempCards[i].active };
+    setCards([...tempCards]);
+  };
   const timerCountDown = () => {
     setTimeout(() => {
       setTimer(timer - 1);
@@ -96,9 +140,12 @@ const GameRoom = ({ id }) => {
               >
                 {gameInfo.started ? (
                   <>
-                    <PlayCard value={10} suit={1} />
-                    <PlayCard value={10} suit={2} />
-                    <PlayCard value={10} suit={3} />
+                    {gameInfo.prevHand.map((c, i) => {
+                      const v = c.card.toString().split(".");
+                      return (
+                        <PlayCard value={Number(v[0])} suit={Number(v[1])} />
+                      );
+                    })}
                   </>
                 ) : (
                   <Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -107,22 +154,24 @@ const GameRoom = ({ id }) => {
                         Waiting for more players to join...
                       </Typography>
                     ) : gameInfo.isHost && gameInfo.players >= 2 ? (
-                      <Button variant="contained">Start Game</Button>
+                      <Button
+                        variant="contained"
+                        onClick={() => socket.emit("startGame", { code: id })}
+                      >
+                        Start Game
+                      </Button>
                     ) : (
                       <Typography variant="h5">
                         Waiting for host to start game...
                       </Typography>
                     )}
-                    {!gameInfo.isHost &&
-                    !gameInfo.seated &&
-                    gameInfo.players < 4 ? (
+                    {!gameInfo.seated ? (
                       <Button
                         variant="contained"
                         onClick={async () => {
-                          socket.emit("joinGame", { code: id });
-                          const { data } = await axios.post(
-                            "http://localhost:5001:/api/join"
-                          );
+                          socket.emit("joinGame", {
+                            code: id,
+                          });
                         }}
                       >
                         Join
@@ -138,27 +187,60 @@ const GameRoom = ({ id }) => {
                 })}
               </Box>
             </Box>
+
             <Box
               sx={{
                 display: "flex",
                 justifyContent: "center",
+                mt: -10,
               }}
             >
               <Avatar>You</Avatar>
-              {arrTest.map((c, i) => {
-                const v = c.toString().split(".");
+              {cards.map((c, i) => {
+                const v = c.card.toString().split(".");
                 return (
                   <PlayCard
                     key={`p1-${i}`}
                     idx={i}
+                    active={c.active}
                     value={Number(v[0])}
                     suit={Number(v[1])}
+                    onClick={() => handlePlayCard(i)}
                   />
                 );
               })}
             </Box>
+
+            {gameInfo.started ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  mt: 2,
+                  justifyContent: "space-evenly",
+                }}
+              >
+                <Button color={"error"} variant="contained">
+                  Pass
+                </Button>
+                {cards.some((c) => c.active === true) ? (
+                  <Button
+                    color={"success"}
+                    variant="contained"
+                    onClick={() =>
+                      socket.emit("playCard", {
+                        code: id,
+                        cards: cards.filter((c) => c.active === true),
+                      })
+                    }
+                  >
+                    Play
+                  </Button>
+                ) : null}
+              </Box>
+            ) : null}
           </Box>
-          <MessageBox code={id} />
+          <MessageBox code={id} gameInfo={gameInfo} />
         </Container>
       )}
     </>

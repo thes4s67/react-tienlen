@@ -3,10 +3,12 @@ import { Container, Card, Button, Box, TextField } from "@mui/material";
 import { useSocket } from "../src/store/SocketContext";
 import axios from "axios";
 import { setPlayerId } from "../src/utils";
+import { useRouter } from "next/router";
 
 const Home = () => {
   const { socket, setSocket } = useSocket();
   const [value, setValue] = useState("");
+  const route = useRouter();
   // useEffect(() => {
   //   const _socket = io("http://localhost:5001");
   //   setSocket(_socket);
@@ -22,12 +24,10 @@ const Home = () => {
                 const { data } = await axios.post(
                   "http://localhost:5001/api/host"
                 );
-                setPlayerId(data.playerId);
                 socket.emit("createGame", {
-                  host: data.playerId,
                   code: data.code,
                 });
-                window.open(`http://localhost:3000/game/${data.code}`, "_self");
+                route.push(`/game/${data.code}`);
               }}
               variant="contained"
             >
@@ -51,9 +51,7 @@ const Home = () => {
               <Button
                 sx={{ flexGrow: 0.3 }}
                 variant="contained"
-                onClick={() =>
-                  window.open(`http://localhost:3000/game/${value}`, "_self")
-                }
+                onClick={() => route.push(`/game/${value}`)}
               >
                 Join Game
               </Button>

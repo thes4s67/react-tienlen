@@ -1,7 +1,7 @@
 import { Card, Box, Typography } from "@mui/material";
 import Portrait from "./Portrait";
 
-const PlayCard = ({ value, idx, suit }) => {
+const PlayCard = ({ value, idx, suit, active, ...props }) => {
   const getValue = (v) => {
     if (v === 11) return "J";
     if (v === 12) return "Q";
@@ -25,8 +25,10 @@ const PlayCard = ({ value, idx, suit }) => {
         width: 100,
         height: 150,
         // zIndex: idx === 0 ? 9999 : 0,
-        mt: idx === 0 ? -1 : 0,
+        mt: active ? -1 : 0,
+        border: "1px solid #2e2e2e",
       }}
+      {...props}
     >
       <Box
         sx={{

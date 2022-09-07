@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
 import { Box, TextField, Button, Popover, Typography } from "@mui/material";
 import { useSocket } from "../../store/SocketContext";
-import { getPlayerId } from "../../utils";
-const MessageBox = ({ code }) => {
+
+const MessageBox = ({ code, gameInfo }) => {
   const [openChat, setOpenChat] = useState(false);
   const [message, setMessage] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
+  const [messageHistory, setMessageHistory] = useState(null);
   const { socket } = useSocket();
 
   useEffect(() => {
-    // socket.on("newMessage", (args) => {
-    //   console.log(args, "this works MessageBox");
-    // });
+    socket.on("newMessage", (args) => {
+      console.log(args, "this works MessageBox");
+    });
   }, [socket]);
 
   return (
@@ -36,9 +37,10 @@ const MessageBox = ({ code }) => {
           variant="contained"
           sx={{ mr: 2 }}
           onClick={() => {
+            //TODO: once you fix the idx issue and format the table pass in playerIdx
             socket.emit("sendMessage", {
               code,
-              playerId: getPlayerId(),
+              idx: 0,
               message,
             });
             setMessage("");

@@ -3,8 +3,8 @@ import Deck from "./deck.js";
 import Player from "./player.js";
 
 class Game {
-  constructor(host, code) {
-    this.host = host;
+  constructor(id, code) {
+    this.host = id;
     this.code = code;
     this.started = false;
     this.gameInfo = {
@@ -14,18 +14,27 @@ class Game {
       playerTurn: null,
       firstHand: true,
       prevHand: [],
+      seatingOrder: [],
       //current player hand contains 2
       tempHandTwo: false,
     };
   }
   addPlayer = (p) => {
     if (this.gameInfo.players.length < 4) {
-      this.gameInfo.players.push(new Player(p.idx, p.name, p.id));
+      this.gameInfo.players.push(new Player(p.idx, p.id));
     }
   };
   setPlayerTurn = (idx) => {
     //set whose turn it is
     this.gameInfo.playerTurn = idx;
+  };
+  randomize = () => {
+    for (let i = this.gameInfo.seatingOrder.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * i);
+      let temp = this.gameInfo.seatingOrder[i];
+      this.gameInfo.seatingOrder[i] = this.gameInfo.seatingOrder[j];
+      this.gameInfo.seatingOrder[j] = temp;
+    }
   };
   sort = (hand) => {
     return hand.sort((a, b) => a - b);
@@ -59,14 +68,19 @@ class Game {
       //sort each players deck
       for (let i = 0; i < this.gameInfo.players.length; i++) {
         let playerCards = this.gameInfo.players[i].cards;
+        //add each player to seating arrangement
+        this.gameInfo.seatingOrder.push(this.gameInfo.players[i].idx);
         this.gameInfo.players[i].cards = this.sort(playerCards);
       }
       this.gameInfo.deck = deck;
       this.gameInfo.lowestCard = min;
+      //randomize the seating order
+      this.randomize();
       this.started = true;
       return {
         code: this.code,
         host: this.host,
+        started: this.started,
         gameInfo: this.gameInfo,
       };
     } else {
