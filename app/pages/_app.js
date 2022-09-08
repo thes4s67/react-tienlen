@@ -1,4 +1,5 @@
 import { SocketWrapper } from "../src/store/SocketContext";
+import "../styles/globals.css";
 
 function MyApp({ Component, pageProps }) {
   return (

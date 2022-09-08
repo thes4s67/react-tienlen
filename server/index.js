@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import GamesList from "./game/gamesList.js";
 import Game from "./game/game.js";
 import { generateGameCode } from "./utils/index.js";
+import { isValidHand, checkSum, getHandType } from "./game/gameLogic.js";
 
 const app = express();
 app.use(express.json());
@@ -51,7 +52,6 @@ io.on("connection", (socket) => {
   });
   socket.on("joinGame", (args) => {
     socket.join(args.code);
-    console.log(args, "player joined");
     const game = gamesList.findGame(args.code);
     const players = game.gameInfo.players.length;
     game.addPlayer({ idx: players, id: socketId });
@@ -68,6 +68,8 @@ io.on("connection", (socket) => {
       started: true,
       playersCards: game.gameInfo.players.map((c) => c.cards.length),
       seatingOrder: game.gameInfo.seatingOrder,
+      playerTurn: game.gameInfo.playerTurn,
+      firstHand: game.gameInfo.firstHand,
     });
     //give each player their cards
     for (let i = 0; i < game.gameInfo.players.length; i++) {
@@ -80,33 +82,75 @@ io.on("connection", (socket) => {
       });
     }
   });
-  socket.on("playCard", (args) => {
-    console.log(args);
-    //Check if hand is playable
-    //update gameInfo
-    io.in(args.code).emit("updateGameInfo", {
-      prevHand: args.cards,
-    });
-    //update playersHand
+  socket.on("pass", (args) => {
     const game = gamesList.findGame(args.code);
-    const player = game.gameInfo.players.filter((c) => c.id === socketId)[0];
-    player.removeCards(args.cards);
-    console.log(player, player.id, "this id");
-    io.to(player.id).emit("updatePlayerInfo", {
-      cards: player.cards.map((c) => {
-        return { card: c, active: false };
-      }),
+    const currIdx = game.gameInfo.seatingOrder.indexOf(args.idx);
+    io.in(args.code).emit("updateGameInfo", {
+      playerTurn:
+        currIdx === game.gameInfo.seatingOrder.length - 1
+          ? game.gameInfo.seatingOrder[0]
+          : game.gameInfo.seatingOrder[currIdx + 1],
     });
+  });
+  socket.on("playCard", (args) => {
+    const game = gamesList.findGame(args.code);
+    let valid = false;
+    //Check if hand is playable
+    const hand = args.cards;
+    if (game.gameInfo.firstHand && isValidHand(hand, game.gameInfo)) {
+      valid = true;
+    }
+    if (
+      !game.gameInfo.firstHand &&
+      getHandType(hand) == getHandType(game.gameInfo.prevHand)
+    ) {
+      valid = checkSum(hand, game.gameInfo.prevHand);
+    }
+
+    if (
+      !game.gameInfo.firstHand &&
+      getHandType(hand) !== getHandType(game.gameInfo.prevHand)
+    ) {
+      //check bomb
+    }
+
+    if (valid) {
+      //if everything is correct
+      const currIdx = game.gameInfo.seatingOrder.indexOf(args.idx);
+      // console.log(game.gameInfo.playersCards[args.idx] - args.cards.length);
+      game.gameInfo.playersCards[args.idx] =
+        game.gameInfo.playersCards[args.idx] - args.cards.length;
+      //update gameInfo
+      io.in(args.code).emit("updateGameInfo", {
+        prevHand: args.cards,
+        firstHand: false,
+        playersCards: game.gameInfo.playersCards,
+        playerTurn:
+          currIdx === game.gameInfo.seatingOrder.length - 1
+            ? game.gameInfo.seatingOrder[0]
+            : game.gameInfo.seatingOrder[currIdx + 1],
+      });
+      //update playersHand
+      const player = game.gameInfo.players.filter((c) => c.id === socketId)[0];
+      player.removeCards(args.cards);
+      io.to(player.id).emit("updatePlayerInfo", {
+        cards: player.cards.map((c) => {
+          return { card: c, active: false };
+        }),
+      });
+    } else {
+      //This is not a valid hand
+      io.to(socketId).emit("updatePlayerInfo", {
+        badPlay: true,
+      });
+    }
   });
   socket.on("sendMessage", (args) => {
     console.log(args, "we got a new message!");
     io.in(args.code).emit("newMessage", {
       gameCode: args.code,
-      playerId: args.playerId,
+      idx: args.idx,
       message: args.message,
     });
-  });
-  socket.on("newMessage", (args) => {
-    console.log(args, "we got the new message");
   });
 });

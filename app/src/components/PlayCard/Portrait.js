@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import JackOfSpade from "./FaceCards/JackOfSpade";
 import JackOfClub from "./FaceCards/JackOfClub";
 import JackOfDiamond from "./FaceCards/JackOfDiamond";
@@ -36,19 +36,26 @@ const Portrait = ({ value, suit }) => {
   return (
     <>
       {value > 10 && value < 15 && value !== 14 ? (
-        getFaceCard()
+        <Box sx={{ mt: -2.5 }}>{getFaceCard()}</Box>
       ) : (
         <Box
           sx={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            p: 1
+            p: 1,
+            mt: -2.5,
           }}
         >
-          <Typography sx={{ fontSize: 30, color: suit > 2 ? "red" : "black" }}>{getSuit(suit)}</Typography>
-          <Typography sx={{ fontSize: 30, color: suit > 2 ? "red" : "black" }}>{getSuit(suit)}</Typography>
-          <Typography sx={{ fontSize: 30, color: suit > 2 ? "red" : "black" }}>{getSuit(suit)}</Typography>
+          <span style={{ fontSize: 20, color: suit > 2 ? "red" : "black" }}>
+            {getSuit(suit)}
+          </span>
+          <span style={{ fontSize: 20, color: suit > 2 ? "red" : "black" }}>
+            {getSuit(suit)}
+          </span>
+          <span style={{ fontSize: 20, color: suit > 2 ? "red" : "black" }}>
+            {getSuit(suit)}
+          </span>
         </Box>
       )}
     </>

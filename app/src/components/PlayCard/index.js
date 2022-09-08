@@ -22,9 +22,8 @@ const PlayCard = ({ value, idx, suit, active, ...props }) => {
       sx={{
         ml: idx !== 0 ? -5 : 0,
         cursor: "pointer",
-        width: 100,
-        height: 150,
-        // zIndex: idx === 0 ? 9999 : 0,
+        width: 90,
+        height: 130,
         mt: active ? -1 : 0,
         border: "1px solid #2e2e2e",
       }}
@@ -43,10 +42,11 @@ const PlayCard = ({ value, idx, suit, active, ...props }) => {
             alignItems: "center",
             p: 1,
             color: suit > 2 ? "red" : "black",
+            fontWeight: 700,
           }}
         >
-          <Typography>{getValue(value)}</Typography>
-          <Typography>{getSuit(suit)}</Typography>
+          <span>{getValue(value)}</span>
+          <span>{getSuit(suit)}</span>
         </Box>
       </Box>
       <Box
@@ -69,11 +69,13 @@ const PlayCard = ({ value, idx, suit, active, ...props }) => {
             display: "flex",
             alignItems: "center",
             p: 1,
+            mt: -4.5,
             color: suit > 2 ? "red" : "black",
+            fontWeight: 700,
           }}
         >
-          <Typography>{getValue(value)}</Typography>
-          <Typography>{getSuit(suit)}</Typography>
+          <span>{getValue(value)}</span>
+          <span>{getSuit(suit)}</span>
         </Box>
       </Box>
     </Card>

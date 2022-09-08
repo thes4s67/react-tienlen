@@ -15,6 +15,7 @@ class Game {
       firstHand: true,
       prevHand: [],
       seatingOrder: [],
+      playersCards: [],
       //current player hand contains 2
       tempHandTwo: false,
     };
@@ -71,6 +72,7 @@ class Game {
         //add each player to seating arrangement
         this.gameInfo.seatingOrder.push(this.gameInfo.players[i].idx);
         this.gameInfo.players[i].cards = this.sort(playerCards);
+        this.gameInfo.playersCards.push(13);
       }
       this.gameInfo.deck = deck;
       this.gameInfo.lowestCard = min;

@@ -1,26 +1,34 @@
 import { useEffect, useState } from "react";
-import { Container, Card, Button, Box, TextField } from "@mui/material";
+import {
+  Container,
+  Card,
+  Button,
+  Box,
+  TextField,
+  CircularProgress,
+} from "@mui/material";
 import { useSocket } from "../src/store/SocketContext";
 import axios from "axios";
 import { setPlayerId } from "../src/utils";
 import { useRouter } from "next/router";
+import Header from "../src/components/Header";
 
 const Home = () => {
-  const { socket, setSocket } = useSocket();
+  const { socket } = useSocket();
   const [value, setValue] = useState("");
+  const [hostLoading, setHostLoading] = useState(false);
+  const [joinLoading, setJoinLoading] = useState(false);
   const route = useRouter();
-  // useEffect(() => {
-  //   const _socket = io("http://localhost:5001");
-  //   setSocket(_socket);
-  //   return () => _socket.close();
-  // }, [setSocket]);
+
   return (
     <>
       <Container sx={{ mt: 5, mb: 5 }}>
-        <Card sx={{ p: 2 }}>
+        <Header />
+        <Card sx={{ p: 6 }}>
           <Box sx={{ display: "flex", flexDirection: "column" }}>
             <Button
               onClick={async () => {
+                setHostLoading(true);
                 const { data } = await axios.post(
                   "http://localhost:5001/api/host"
                 );
@@ -31,7 +39,11 @@ const Home = () => {
               }}
               variant="contained"
             >
-              Host Game
+              {hostLoading ? (
+                <CircularProgress color="error" size="1.5rem" />
+              ) : (
+                " Host Game"
+              )}
             </Button>
             <Box
               sx={{
@@ -50,10 +62,18 @@ const Home = () => {
               />
               <Button
                 sx={{ flexGrow: 0.3 }}
+                disabled={value === "" ? true : false}
                 variant="contained"
-                onClick={() => route.push(`/game/${value}`)}
+                onClick={() => {
+                  setJoinLoading(true);
+                  route.push(`/game/${value}`);
+                }}
               >
-                Join Game
+                {joinLoading ? (
+                  <CircularProgress color="error" size="1.5rem" />
+                ) : (
+                  " Join Game"
+                )}
               </Button>
             </Box>
           </Box>
