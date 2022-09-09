@@ -12,7 +12,7 @@ import KingOfClub from "./FaceCards/KingOfClub";
 import KingOfDiamond from "./FaceCards/KingOfDiamond";
 import KingOfHeart from "./FaceCards/KingOfHeart";
 
-const Portrait = ({ value, suit }) => {
+const Portrait = ({ value, suit, small }) => {
   const getSuit = (v) => {
     if (v === 1) return "♠";
     if (v === 2) return "♣";
@@ -50,12 +50,16 @@ const Portrait = ({ value, suit }) => {
           <span style={{ fontSize: 20, color: suit > 2 ? "red" : "black" }}>
             {getSuit(suit)}
           </span>
-          <span style={{ fontSize: 20, color: suit > 2 ? "red" : "black" }}>
-            {getSuit(suit)}
-          </span>
-          <span style={{ fontSize: 20, color: suit > 2 ? "red" : "black" }}>
-            {getSuit(suit)}
-          </span>
+          {!small ? (
+            <>
+              <span style={{ fontSize: 20, color: suit > 2 ? "red" : "black" }}>
+                {getSuit(suit)}
+              </span>
+              <span style={{ fontSize: 20, color: suit > 2 ? "red" : "black" }}>
+                {getSuit(suit)}
+              </span>
+            </>
+          ) : null}
         </Box>
       )}
     </>

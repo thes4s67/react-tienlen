@@ -1,13 +1,24 @@
 import { Box } from "@mui/material";
-const BackOfCard = ({ idx, side }) => {
+const BackOfCard = ({ idx, side, small }) => {
+  const getSize = (type) => {
+    if (type === "width") {
+      if (small) return 65;
+      return side ? 100 : 90;
+    }
+    if (type === "height") {
+      if (small) return 80;
+      return side ? 90 : 95;
+    }
+  };
+
   return (
     <Box
       sx={{ mt: idx !== 0 && side ? -9 : 0, ml: idx !== 0 && !side ? -6 : 0 }}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width={side ? 100 : 90}
-        height={side ? 90 : 95}
+        width={getSize("width")}
+        height={getSize("height")}
         viewBox="0 0 167.184 242.862"
         xmlSpace="preserve"
       >

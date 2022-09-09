@@ -7,6 +7,8 @@ import {
   Avatar,
   Snackbar,
   IconButton,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import BackOfCard from "../../../src/components/PlayCard/BackOfCard";
 import PlayCard from "../../../src/components/PlayCard";
@@ -15,6 +17,14 @@ import MessageBox from "../../../src/components/Message";
 import { useSocket } from "../../../src/store/SocketContext";
 import useTimer from "../../../src/hooks/useTimer";
 import CloseIcon from "@mui/icons-material/Close";
+import WinnerBoard from "../../../src/components/GameTable/WinnerBoard";
+import ResetGame from "../../../src/components/GameTable/ResetGame";
+import GameInfo from "../../../src/components/GameTable/GameInfo";
+import {
+  getPlayerNumber,
+  getPlayerCards,
+  getPlayerTurn,
+} from "../../../src/utils";
 
 const GameRoom = ({ id }) => {
   const [gameInfo, setGameInfo] = useState({});
@@ -22,6 +32,9 @@ const GameRoom = ({ id }) => {
   const [openError, setOpenError] = useState(false);
   const { socket } = useSocket();
   const { resetTimer, timer } = useTimer(gameInfo.started);
+  const theme = useTheme();
+  const smallMedia = useMediaQuery(theme.breakpoints.down("sm"));
+  console.log(smallMedia, "smMedia");
   const arrTest = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
   useEffect(() => {
@@ -73,6 +86,12 @@ const GameRoom = ({ id }) => {
     setCards([...tempCards]);
   };
 
+  const checkHasActiveCard = () => {
+    //prevents user from clicking play btn /w out an active card
+    const active = cards.filter((c) => c.active);
+    return active.length > 0 ? false : true;
+  };
+
   const checkVisibility = (pos) => {
     if (pos === "bottom" && gameInfo.started) return null;
     if (
@@ -90,79 +109,14 @@ const GameRoom = ({ id }) => {
     return "hidden";
   };
 
-  const getPlayerNum = (pos) => {
-    try {
-      const tempSO = gameInfo.seatingOrder
-        .filter((c) => c !== gameInfo.idx)
-        .reverse();
-      if (gameInfo.players === 2) {
-        return `P${tempSO[0] + 1}`;
-      }
-      if (gameInfo.players === 3) {
-        if (pos === "left") return `P${tempSO[0] + 1}`;
-        if (pos === "right") return `P${tempSO[1] + 1}`;
-      }
-      if (gameInfo.players === 4) {
-        if (pos === "left") return `P${tempSO[0] + 1}`;
-        if (pos === "top") return `P${tempSO[1] + 1}`;
-        if (pos === "right") return `P${tempSO[2] + 1}`;
-      }
-    } catch (error) {
-      return;
-    }
-  };
-
-  const getPlayerCards = (pos) => {
-    if (!gameInfo.started) return [...new Array(13)];
-    const tempSO = gameInfo.seatingOrder
-      .filter((c) => c !== gameInfo.idx)
-      .reverse();
-    // console.log(tempSO, "the TempSO", gameInfo.playersCards);
-    let len = 0;
-    if (gameInfo.players === 2) {
-      len = gameInfo.playersCards[tempSO[0]];
-    }
-    if (gameInfo.players === 3) {
-      if (pos === "left") len = gameInfo.playersCards[tempSO[0]];
-      if (pos === "right") len = gameInfo.playersCards[tempSO[1]];
-    }
-    if (gameInfo.players === 4) {
-      if (pos === "left") len = gameInfo.playersCards[tempSO[0]];
-      if (pos === "top") len = gameInfo.playersCards[tempSO[1]];
-      if (pos === "right") len = gameInfo.playersCards[tempSO[3]];
-    }
-    return [...new Array(len)];
-  };
-
   return (
     <>
       {Object.keys(gameInfo).length !== 0 && !gameInfo.exists ? (
         <GamePrompt />
       ) : (
-        <Container sx={{ mt: 10, mb: 10 }}>
-          <Box
-            id="game-info"
-            sx={{
-              display: "flex",
-              backgroundColor: "#2a2929",
-              boxShadow: "#333 0 0 7px",
-              py: 1,
-              px: 2,
-              color: "#fff",
-              justifyContent: "space-between",
-            }}
-          >
-            <Typography>Tien Len #{gameInfo.code}</Typography>
-            {gameInfo.started ? (
-              <Typography>
-                {gameInfo.playerTurn === gameInfo.idx
-                  ? "Your turn"
-                  : `Waiting For Player ${gameInfo.playerTurn + 1}`}{" "}
-                {`(00:${timer < 10 ? `0${timer}` : timer})`}
-              </Typography>
-            ) : null}
-            <Typography>Players {gameInfo.players}/4</Typography>
-          </Box>
+        <>
+          <GameInfo gameInfo={gameInfo} timer={timer} />
+          {gameInfo.started ? <WinnerBoard winners={gameInfo.winners} /> : null}
           <Box
             id="game-board"
             sx={{
@@ -171,7 +125,13 @@ const GameRoom = ({ id }) => {
               height: 650,
             }}
           >
-            <Box id="top-player" sx={{ visibility: checkVisibility("top") }}>
+            <Box
+              id="top-player"
+              sx={{
+                visibility: checkVisibility("top"),
+                height: 235,
+              }}
+            >
               <Box
                 sx={{
                   display: "flex",
@@ -183,14 +143,18 @@ const GameRoom = ({ id }) => {
                 <Avatar
                   sx={{
                     mt: 2.5,
-                    backgroundColor:
-                      gameInfo.playerTurn !== gameInfo.idx
-                        ? "#2a2929"
-                        : "#bdbdbd",
+                    width: smallMedia ? "35px" : null,
+                    height: smallMedia ? "35px" : null,
+                    backgroundColor: getPlayerTurn(
+                      gameInfo.tableOrder,
+                      gameInfo.playerTurn,
+                      "top",
+                      gameInfo.players
+                    ),
                   }}
                 />
                 <Typography variant="subtitle1">
-                  {getPlayerNum("top")}
+                  {getPlayerNumber(gameInfo.tableOrder, "top")}
                 </Typography>
               </Box>
               <Box
@@ -202,8 +166,15 @@ const GameRoom = ({ id }) => {
                   p: 5,
                 }}
               >
-                {getPlayerCards("top").map((c, i) => {
-                  return <BackOfCard key={`p1-${i}`} idx={i} side={false} />;
+                {getPlayerCards(gameInfo.playersCards, "top").map((c, i) => {
+                  return (
+                    <BackOfCard
+                      key={`p1-${i}`}
+                      idx={i}
+                      side={false}
+                      small={smallMedia}
+                    />
+                  );
                 })}
               </Box>
             </Box>
@@ -217,8 +188,7 @@ const GameRoom = ({ id }) => {
               <Box
                 id="left-player"
                 sx={{
-                  display: "flex",
-                  flexWrap: "wrap",
+                  display: smallMedia ? null : "flex",
                   alignItems: "center",
                   ml: 2.5,
                   visibility: checkVisibility("left"),
@@ -234,14 +204,18 @@ const GameRoom = ({ id }) => {
                 >
                   <Avatar
                     sx={{
-                      backgroundColor:
-                        gameInfo.playerTurn !== gameInfo.idx
-                          ? "#2a2929"
-                          : "#bdbdbd",
+                      width: smallMedia ? "35px" : null,
+                      height: smallMedia ? "35px" : null,
+                      backgroundColor: getPlayerTurn(
+                        gameInfo.tableOrder,
+                        gameInfo.playerTurn,
+                        "left",
+                        gameInfo.players
+                      ),
                     }}
                   />
                   <Typography variant="subtitle1">
-                    {getPlayerNum("left")}
+                    {getPlayerNumber(gameInfo.tableOrder, "left")}
                   </Typography>
                 </Box>
                 <Box
@@ -250,8 +224,15 @@ const GameRoom = ({ id }) => {
                     flexDirection: "column",
                   }}
                 >
-                  {getPlayerCards("left").map((c, i) => {
-                    return <BackOfCard key={`left-${i}`} idx={i} side={true} />;
+                  {getPlayerCards(gameInfo.playersCards, "left").map((c, i) => {
+                    return (
+                      <BackOfCard
+                        key={`left-${i}`}
+                        idx={i}
+                        side={true}
+                        small={smallMedia}
+                      />
+                    );
                   })}
                 </Box>
               </Box>
@@ -261,7 +242,8 @@ const GameRoom = ({ id }) => {
                   display: "flex",
                   flextDirection: "row",
                   alignItems: "center",
-                  mt: cards.length > 0 ? -6 : 0,
+                  mt: 4,
+                  height: 235,
                 }}
               >
                 {gameInfo.started ? (
@@ -269,7 +251,11 @@ const GameRoom = ({ id }) => {
                     {gameInfo.prevHand.map((c, i) => {
                       const v = c.card.toString().split(".");
                       return (
-                        <PlayCard value={Number(v[0])} suit={Number(v[1])} />
+                        <PlayCard
+                          value={Number(v[0])}
+                          suit={Number(v[1])}
+                          small={smallMedia}
+                        />
                       );
                     })}
                   </>
@@ -290,7 +276,7 @@ const GameRoom = ({ id }) => {
                     ) : gameInfo.isHost && gameInfo.players >= 2 ? (
                       <Button
                         variant="contained"
-                        color="warning"
+                        color="primary"
                         onClick={() => socket.emit("startGame", { code: id })}
                       >
                         Start Game
@@ -303,7 +289,7 @@ const GameRoom = ({ id }) => {
                     {!gameInfo.seated ? (
                       <Button
                         variant="contained"
-                        color="warning"
+                        color="primary"
                         sx={{ mt: 2 }}
                         onClick={async () => {
                           socket.emit("joinGame", {
@@ -320,25 +306,13 @@ const GameRoom = ({ id }) => {
               <Box
                 id="right-player"
                 sx={{
-                  display: "flex",
-                  flexWrap: "wrap",
+                  display: smallMedia ? "" : "flex",
+                  flexDirection: "row-reverse",
                   alignItems: "center",
                   mr: 2.5,
                   visibility: checkVisibility("right"),
                 }}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  {getPlayerCards("right").map((c, i) => {
-                    return (
-                      <BackOfCard key={`right-${i}`} idx={i} side={true} />
-                    );
-                  })}
-                </Box>
                 <Box
                   sx={{
                     display: "flex",
@@ -349,21 +323,47 @@ const GameRoom = ({ id }) => {
                 >
                   <Avatar
                     sx={{
-                      backgroundColor:
-                        gameInfo.playerTurn !== gameInfo.idx
-                          ? "#2a2929"
-                          : "#bdbdbd",
+                      width: smallMedia ? "35px" : null,
+                      height: smallMedia ? "35px" : null,
+                      backgroundColor: getPlayerTurn(
+                        gameInfo.tableOrder,
+                        gameInfo.playerTurn,
+                        "right",
+                        gameInfo.players
+                      ),
                     }}
                   />
                   <Typography variant="subtitle1">
-                    {getPlayerNum("right")}
+                    {getPlayerNumber(gameInfo.tableOrder, "right")}
                   </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  {getPlayerCards(gameInfo.playersCards, "right").map(
+                    (c, i) => {
+                      return (
+                        <BackOfCard
+                          key={`right-${i}`}
+                          idx={i}
+                          side={true}
+                          small={smallMedia}
+                        />
+                      );
+                    }
+                  )}
                 </Box>
               </Box>
             </Box>
             <Box
               id="bottom-player"
-              sx={{ visibility: checkVisibility("bottom") }}
+              sx={{
+                visibility: checkVisibility("bottom"),
+                mt: smallMedia ? 5 : -6,
+              }}
             >
               <Box
                 sx={{
@@ -371,7 +371,6 @@ const GameRoom = ({ id }) => {
                   alignItems: "center",
                   justifyContent: "center",
                   p: 1,
-                  mt: -12,
                 }}
               >
                 {cards.map((c, i) => {
@@ -384,6 +383,7 @@ const GameRoom = ({ id }) => {
                       value={Number(v[0])}
                       suit={Number(v[1])}
                       onClick={() => handlePlayCard(i)}
+                      small={smallMedia}
                     />
                   );
                 })}
@@ -393,14 +393,15 @@ const GameRoom = ({ id }) => {
                   display: "flex",
                   justifyContent: "space-evenly",
                   alignItems: "center",
-                  mt: cards.length > 0 ? 2 : 18,
                 }}
               >
                 <Button
                   color={"error"}
                   variant="contained"
                   disabled={
-                    gameInfo.firstHand || gameInfo.playerTurn !== gameInfo.idx
+                    gameInfo.firstHand ||
+                    gameInfo.gameEnd ||
+                    gameInfo.playerTurn !== gameInfo.idx
                   }
                   onClick={() =>
                     socket.emit("pass", { code: id, idx: gameInfo.idx })
@@ -410,7 +411,9 @@ const GameRoom = ({ id }) => {
                 </Button>
                 <Avatar
                   sx={{
-                    p: 0.2,
+                    p: smallMedia ? 0.5 : 0.2,
+                    width: smallMedia ? "35px" : null,
+                    height: smallMedia ? "35px" : null,
                     backgroundColor:
                       gameInfo.playerTurn === gameInfo.idx
                         ? "#2a2929"
@@ -420,9 +423,13 @@ const GameRoom = ({ id }) => {
                   You
                 </Avatar>
                 <Button
-                  color={"warning"}
+                  color={"primary"}
                   variant="contained"
-                  disabled={gameInfo.playerTurn !== gameInfo.idx}
+                  disabled={
+                    gameInfo.playerTurn !== gameInfo.idx ||
+                    gameInfo.gameEnd ||
+                    checkHasActiveCard()
+                  }
                   onClick={() =>
                     socket.emit("playCard", {
                       code: id,
@@ -436,8 +443,12 @@ const GameRoom = ({ id }) => {
               </Box>
             </Box>
           </Box>
+
+          {gameInfo.gameEnd ? (
+            <ResetGame socket={socket} gameInfo={gameInfo} id={id} />
+          ) : null}
           <MessageBox code={id} gameInfo={gameInfo} />
-        </Container>
+        </>
       )}
       <Snackbar
         open={openError}

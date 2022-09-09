@@ -4,7 +4,13 @@ import { Server } from "socket.io";
 import GamesList from "./game/gamesList.js";
 import Game from "./game/game.js";
 import { generateGameCode } from "./utils/index.js";
-import { isValidHand, checkSum, getHandType } from "./game/gameLogic.js";
+import {
+  isValidFirstHand,
+  checkSum,
+  getHandType,
+  getPlayersCards,
+  getTableOrder,
+} from "./game/gameLogic.js";
 
 const app = express();
 app.use(express.json());
@@ -62,14 +68,21 @@ io.on("connection", (socket) => {
   });
   socket.on("startGame", (args) => {
     const game = gamesList.findGame(args.code);
+    if (game.gameInfo.winners.length === game.gameInfo.players.length - 1) {
+      //reset game for new game
+      console.log("game is reset!");
+      game.reset();
+    }
     game.start();
     //update to all players that game started
     io.in(args.code).emit("updateGameInfo", {
       started: true,
-      playersCards: game.gameInfo.players.map((c) => c.cards.length),
       seatingOrder: game.gameInfo.seatingOrder,
       playerTurn: game.gameInfo.playerTurn,
       firstHand: game.gameInfo.firstHand,
+      winners: game.gameInfo.winners,
+      prevHand: game.gameInfo.prevHand,
+      gameEnd: false,
     });
     //give each player their cards
     for (let i = 0; i < game.gameInfo.players.length; i++) {
@@ -79,6 +92,12 @@ io.on("connection", (socket) => {
           return { card: c, active: false };
         }),
         idx: player.idx,
+        tableOrder: getTableOrder(player.idx, game.gameInfo.seatingOrder),
+        playersCards: getPlayersCards(
+          args.idx,
+          game.gameInfo.seatingOrder,
+          game.gameInfo.playersCards
+        ),
       });
     }
   });
@@ -95,27 +114,51 @@ io.on("connection", (socket) => {
   socket.on("playCard", (args) => {
     const game = gamesList.findGame(args.code);
     let valid = false;
-    //Check if hand is playable
     const hand = args.cards;
-    if (game.gameInfo.firstHand && isValidHand(hand, game.gameInfo)) {
-      valid = true;
-    }
-    if (
-      !game.gameInfo.firstHand &&
-      getHandType(hand) == getHandType(game.gameInfo.prevHand)
-    ) {
-      valid = checkSum(hand, game.gameInfo.prevHand);
-    }
-
-    if (
-      !game.gameInfo.firstHand &&
-      getHandType(hand) !== getHandType(game.gameInfo.prevHand)
-    ) {
-      //check bomb
+    //Check if hand is playable
+    if (!game.gameInfo.firstHand) {
+      console.log("not a first hand");
+      //check if its a "free hand", all players passed last hand
+      if (game.gameInfo.prevHandPlayer === args.idx) {
+        console.log("this is a free hand");
+        valid = getHandType(hand) !== "null";
+      } else {
+        const prevHand = game.gameInfo.prevHand;
+        if (getHandType(hand) == getHandType(prevHand)) {
+          console.log("we checked if hand is equal");
+          valid = hand.length === prevHand.length && checkSum(hand, prevHand);
+        } else {
+          //check if bomb
+          console.log("checking.. if bomb");
+          const handType = getHandType(hand);
+          if (
+            (handType === "PairSquence" || handType === "Quad") &&
+            Math.floor(prevHand[0].card) === 15
+          ) {
+            const handLen = handType === "Quad" ? 4 : hand.length / 2;
+            if (prevHand.length === 1) {
+              console.log("last hand had one 2");
+              valid = handLen >= 3 ? true : false;
+            }
+            if (prevHand.length === 2) {
+              console.log("last hand had dbl 2");
+              valid = handLen > 3 && handType !== "Quad";
+            }
+          }
+        }
+      }
+    } else {
+      //its the first hand
+      console.log("its the first hand");
+      console.log(isValidFirstHand(hand, game.gameInfo), "isValidFirstHand");
+      valid = isValidFirstHand(hand, game.gameInfo);
     }
 
     if (valid) {
       //if everything is correct
+      game.gameInfo.prevHand = hand;
+      game.gameInfo.prevHandPlayer = args.idx;
+      game.gameInfo.firstHand = false;
       const currIdx = game.gameInfo.seatingOrder.indexOf(args.idx);
       // console.log(game.gameInfo.playersCards[args.idx] - args.cards.length);
       game.gameInfo.playersCards[args.idx] =
@@ -124,7 +167,6 @@ io.on("connection", (socket) => {
       io.in(args.code).emit("updateGameInfo", {
         prevHand: args.cards,
         firstHand: false,
-        playersCards: game.gameInfo.playersCards,
         playerTurn:
           currIdx === game.gameInfo.seatingOrder.length - 1
             ? game.gameInfo.seatingOrder[0]
@@ -133,11 +175,29 @@ io.on("connection", (socket) => {
       //update playersHand
       const player = game.gameInfo.players.filter((c) => c.id === socketId)[0];
       player.removeCards(args.cards);
-      io.to(player.id).emit("updatePlayerInfo", {
-        cards: player.cards.map((c) => {
-          return { card: c, active: false };
-        }),
-      });
+
+      for (let i = 0; i < game.gameInfo.players.length; i++) {
+        const player = game.gameInfo.players[i];
+        io.to(player.id).emit("updatePlayerInfo", {
+          cards: player.cards.map((c) => {
+            return { card: c, active: false };
+          }),
+          playersCards: getPlayersCards(
+            args.idx,
+            game.gameInfo.seatingOrder,
+            game.gameInfo.playersCards
+          ),
+        });
+      }
+
+      if (player.cards.length === 0) {
+        game.addWinner(args.idx);
+        io.to(args.code).emit("updateGameInfo", {
+          winners: game.gameInfo.winners,
+          gameEnd:
+            game.gameInfo.winners.length === game.gameInfo.players.length - 1,
+        });
+      }
     } else {
       //This is not a valid hand
       io.to(socketId).emit("updatePlayerInfo", {

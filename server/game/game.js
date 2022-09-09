@@ -14,16 +14,32 @@ class Game {
       playerTurn: null,
       firstHand: true,
       prevHand: [],
+      prevHandPlayer: null,
       seatingOrder: [],
       playersCards: [],
-      //current player hand contains 2
-      tempHandTwo: false,
+      winners: [],
     };
   }
+  reset = () => {
+    this.gameInfo = {
+      ...this.gameInfo,
+      lowestCard: null,
+      deck: null,
+      playerTurn: null,
+      firstHand: true,
+      prevHand: [],
+      prevHandPlayer: null,
+      playersCards: [],
+      winners: [],
+    };
+  };
   addPlayer = (p) => {
     if (this.gameInfo.players.length < 4) {
       this.gameInfo.players.push(new Player(p.idx, p.id));
     }
+  };
+  addWinner = (idx) => {
+    this.gameInfo.winners.push(idx);
   };
   setPlayerTurn = (idx) => {
     //set whose turn it is

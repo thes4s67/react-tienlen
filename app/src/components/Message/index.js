@@ -6,15 +6,32 @@ import {
   Popover,
   Typography,
   Avatar,
+  styled,
+  InputBase,
+  useTheme,
+  Tooltip,
+  IconButton,
 } from "@mui/material";
 import { useSocket } from "../../store/SocketContext";
+import Picker from "emoji-picker-react";
+import SpeakerNotesIcon from "@mui/icons-material/SpeakerNotes";
+
+const MessageWrapper = styled(InputBase)(
+  ({ theme }) => `
+  padding: 1;
+  width: 100%
+`
+);
 
 const MessageBox = ({ code, gameInfo }) => {
   const [openChat, setOpenChat] = useState(false);
+  const [openEmoji, setOpenEmoji] = useState(false);
   const [message, setMessage] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl2, setAnchorEl2] = useState(null);
   const [messageHistory, setMessageHistory] = useState([]);
   const { socket } = useSocket();
+  const theme = useTheme();
 
   useEffect(() => {
     socket.on("newMessage", (args) => {
@@ -30,24 +47,63 @@ const MessageBox = ({ code, gameInfo }) => {
       <Box
         id="chat-box"
         sx={{
-          backgroundColor: "#2a2929",
-          boxShadow: "#333 0 0 7px",
+          backgroundColor: "#f2f5f9",
+          boxShadow: "#11192a 0 0 7px",
           p: 1,
           display: "flex",
         }}
       >
-        <TextField
+        <Box flexGrow={1} display="flex" alignItems="center">
+          <Avatar
+            sx={{
+              display: { xs: "none", sm: "flex" },
+              mr: 1,
+              backgroundColor: "#2a2929",
+            }}
+          />
+          <MessageWrapper
+            placeholder="Write your message..."
+            autoFocus
+            fullWidth
+            inputProps={{ maxLength: 50 }}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+          />
+        </Box>
+        {/* <TextField
           sx={{ backgroundColor: "#fff", flexGrow: 0.8 }}
           placeholder="Type your message..."
           inputProps={{ maxLength: 50 }}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-        />
+        /> */}
+
+        <Tooltip arrow placement="top" title={"Show emojis"}>
+          <IconButton
+            color="primary"
+            onClick={(e) => {
+              setAnchorEl2(e.currentTarget);
+              setOpenEmoji(true);
+            }}
+          >
+            😀
+          </IconButton>
+        </Tooltip>
+        <Tooltip arrow placement="top" title={"Show chat history"}>
+          <IconButton
+            color="primary"
+            onClick={(e) => {
+              setAnchorEl(e.currentTarget);
+              setOpenChat(!openChat);
+            }}
+          >
+            <SpeakerNotesIcon sx={{ color: "black" }} />
+          </IconButton>
+        </Tooltip>
         <Button
           variant="contained"
-          sx={{ mr: 2 }}
+          sx={{ ml: 2 }}
           onClick={() => {
-            //TODO: once you fix the idx issue and format the table pass in playerIdx
             socket.emit("sendMessage", {
               code,
               idx: gameInfo.idx,
@@ -58,17 +114,23 @@ const MessageBox = ({ code, gameInfo }) => {
         >
           Send
         </Button>
-        <Button
-          variant="contained"
-          sx={{ flexGrow: 0.2 }}
-          onClick={(e) => {
-            setAnchorEl(e.currentTarget);
-            setOpenChat(!openChat);
-          }}
-        >
-          Show Chat History
-        </Button>
       </Box>
+      <Popover
+        // sx={{ mt: -2 }}
+        open={openEmoji}
+        onClose={() => setOpenEmoji(false)}
+        anchorEl={anchorEl2}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "center",
+        }}
+        transformOrigin={{
+          vertical: "bottom",
+          horizontal: "center",
+        }}
+      >
+        <Picker onEmojiClick={(e, t) => setMessage(`${message}${t.emoji}`)} />
+      </Popover>
       <Popover
         sx={{ mt: -2 }}
         open={openChat}
@@ -83,36 +145,61 @@ const MessageBox = ({ code, gameInfo }) => {
           horizontal: "center",
         }}
       >
-        <Box sx={{ p: 2, height: 250, width: 500, backgroundColor: "#fbfbfb" }}>
-          {messageHistory.map((c, i) => {
-            return (
-              <Box
-                sx={{
-                  p: 2,
-                  borderRadius: 2,
-                  border:
-                    gameInfo.idx === c.idx
-                      ? "1px solid #333"
-                      : "1px solid #444c74",
-                  display: "flex",
-                  alignItems: "center",
-                  backgroundColor: gameInfo.idx === c.idx ? "#333" : "#444c74",
-                  width: "300px",
-                  color: "white",
-                  float: gameInfo.idx !== c.idx ? "right" : "",
-                  mt: 1.5,
-                }}
-              >
-                <Avatar variant="square" sx={{ backgroundColor: "green" }}>
-                  {gameInfo.idx === c.idx ? "You" : `P${c.idx + 1}`}
-                </Avatar>
-                <Typography variant="subtitle2" sx={{ ml: 1.5 }}>
-                  {c.message}
-                </Typography>
-              </Box>
-            );
-          })}
-        </Box>
+        {messageHistory.length > 0 ? (
+          <Box
+            sx={{ p: 2, height: 250, width: 500, backgroundColor: "#fbfbfb" }}
+          >
+            {messageHistory.map((c, i) => {
+              return (
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    border:
+                      gameInfo.idx === c.idx
+                        ? "1px solid #333"
+                        : "1px solid #444c74",
+                    display: "flex",
+                    alignItems: "center",
+                    backgroundColor:
+                      gameInfo.idx === c.idx ? "#333" : "#444c74",
+                    width: "300px",
+                    color: "white",
+                    float: gameInfo.idx !== c.idx ? "right" : "",
+                    mt: 1.5,
+                  }}
+                >
+                  <Avatar
+                    sx={{
+                      backgroundColor: "green",
+                      fontSize: 14,
+                      color: "2a2929",
+                    }}
+                  >
+                    {gameInfo.idx === c.idx ? null : `P${c.idx + 1}`}
+                  </Avatar>
+                  <Typography variant="subtitle2" sx={{ ml: 1.5 }}>
+                    {c.message}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              p: 2,
+              height: 250,
+              width: 500,
+              backgroundColor: "#fbfbfb",
+            }}
+          >
+            <Typography variant="subtitle2">No messages yet...</Typography>
+          </Box>
+        )}
       </Popover>
     </>
   );
