@@ -20,10 +20,7 @@ const Footer = ({ mediaSize }) => {
         <Box
           sx={{ display: "flex", cursor: "pointer", alignItems: "center" }}
           onClick={() =>
-            window.open(
-              "https://github.com/thes4s67/covid-heatmap-timeline",
-              "_self"
-            )
+            window.open("https://github.com/thes4s67/react-tienlen", "_blank")
           }
         >
           <GitHubIcon />

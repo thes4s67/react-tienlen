@@ -10,15 +10,22 @@ import {
   getHandType,
   getTableOrder,
 } from "./game/gameLogic.js";
+import dotenv from "dotenv";
 
+dotenv.config();
 const app = express();
 app.use(express.json());
 const gamesList = new GamesList();
-app.use(cors({ origin: "http://localhost:3000" }));
+
+app.use(cors({ origin: process.env.CLIENT_URL }));
 const server = app.listen(process.env.PORT || 5001, () => {
   console.log(`Server started on ${process.env.PORT || 5001}`);
 });
-const io = new Server(server, { cors: { origin: "http://localhost:3000" } });
+const io = new Server(server, { cors: { origin: process.env.CLIENT_URL } });
+
+app.get("/", (req, res) => {
+  res.redirect("https://react-tienlen.vercel.app");
+});
 
 app.post("/api/host", (req, res) => {
   res.send({

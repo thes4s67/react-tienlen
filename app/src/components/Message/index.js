@@ -19,6 +19,8 @@ const Picker = dynamic(() => import("emoji-picker-react"), {
   ssr: false,
 });
 
+// console.log("?")
+
 const MessageWrapper = styled(InputBase)(
   ({ theme }) => `
   padding: 1;

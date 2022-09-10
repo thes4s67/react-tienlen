@@ -397,7 +397,7 @@ const GameRoom = ({ id }) => {
                 visibility: checkVisibility("bottom"),
                 // mt: smallMedia ? 5 : -6,
                 position: "relative",
-                top: smallMedia ? 40 : -70,
+                top: smallMedia ? 40 : 20,
               }}
             >
               <Box
