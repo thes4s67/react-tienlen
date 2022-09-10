@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import {
   Button,
   Dialog,
@@ -23,7 +22,10 @@ const GamePrompt = ({ gameInfo }) => {
         <Button
           variant="contained"
           onClick={() => {
-            window.open("http://localhost:3000", "_self");
+            window.open(
+              process.env.CLIENT_URL || "http://localhost:3000",
+              "_self"
+            );
           }}
         >
           Go to Lobby

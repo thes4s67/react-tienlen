@@ -7,7 +7,7 @@ export const useSocket = () => useContext(SocketContext);
 export const SocketWrapper = ({ children }) => {
   const [socket, setSocket] = useState(null);
   useEffect(() => {
-    const _socket = io("http://localhost:5001");
+    const _socket = io(process.env.SERVER_URL || "http://localhost:5001");
     setSocket(_socket);
     return () => _socket.close();
     //TODO: review this dependency ???

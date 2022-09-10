@@ -68,7 +68,9 @@ const Home = () => {
                 onClick={async () => {
                   setHostLoading(true);
                   const { data } = await axios.post(
-                    "http://localhost:5001/api/host"
+                    `${
+                      process.env.SERVER_URL || "http://localhost:5001"
+                    }/api/host`
                   );
                   socket.emit("createGame", {
                     code: data.code,
