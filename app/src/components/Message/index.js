@@ -10,9 +10,14 @@ import {
   Tooltip,
   IconButton,
 } from "@mui/material";
+import dynamic from "next/dynamic";
 import { useSocket } from "../../store/SocketContext";
-import Picker from "emoji-picker-react";
+// import Picker from "emoji-picker-react";
 import SpeakerNotesIcon from "@mui/icons-material/SpeakerNotes";
+
+const Picker = dynamic(() => import("emoji-picker-react"), {
+  ssr: false,
+});
 
 const MessageWrapper = styled(InputBase)(
   ({ theme }) => `
