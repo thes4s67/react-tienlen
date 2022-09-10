@@ -47,6 +47,5 @@ This project makes no guarantees regarding game security or overall for that mat
 - Even if a user manages to modify the state or make a separate socket connection, the initial game info is/can be compared to see if the data matches.
 
 ## Todo
-
 - Spectate mode
 - Automatic wins
