@@ -24,9 +24,9 @@ The game logic "engine" consists of several parts: the `gameList`, `game`, `play
 - game - a class that holds the info for each individual game
 - player - a class that holds the info for each player such as player idx & cards
 - gameLogic - contains methods & functions to determine if a hand played is valid
-- cards - an array with 52 cards represented with their rank value and suit as a float. Example 3♠ is 3.1 and a 2<span style={{ color: "red" }}>♦</span> is 15.3. See more below on this logic
+- cards - an array with 52 cards represented with their rank value and suit as a float. Example 3♠ is 3.1 and a 2♦ is 15.3. See more below on this logic
 
-The card array uses a value classification for each card since in Tien Len the objective is to beat another opponent's hand with a higher rank and/or suit. In Tien Len, the cards are ranked & suits from lowest to highest: 3,4,5,6,7,8,9,10,J,Q,A,K,2 with suits ♠ ♣ <span style={{ color: "red" }}>♦</span> <span style={{ color: "red" }}>♥</span>
+The card array uses a value classification for each card since in Tien Len the objective is to beat another opponent's hand with a higher rank and/or suit. In Tien Len, the cards are ranked & suits from lowest to highest: 3,4,5,6,7,8,9,10,J,Q,A,K,2 with suits ♠ ♣ ♦ ♥
 
 To determine if a hand played is greater than the opponent's hand, we sum up the values and compare. However, there are cases when this logic breaks such: playing the same consectuive sequence but with different suits or bombs. With these exceptions, we determine if the hand is greater by looking at the highest suit or use separate logic for bombs.
 
@@ -42,6 +42,6 @@ This project makes no guarantees regarding game security or overall for that mat
 - Each client connected to the socket server receives only important info to that player & overall info about the game such as number of players, whose turn it is, and each player's remaining cards.
 - Even if a user manages to modify the state or make a separate socket connection, the initial game info is/can be compared to see if the data matches.
 
-## TODO
+## Todo
 - Spectate mode
 - Automatic wins
