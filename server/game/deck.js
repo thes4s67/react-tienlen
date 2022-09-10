@@ -1,6 +1,8 @@
+import cards from "./cards.js";
+
 class Deck {
-  constructor(cards) {
-    this.stack = cards;
+  constructor() {
+    this.stack = Array.from(cards);
     this.remaining = cards.length;
   }
   shuffle = () => {

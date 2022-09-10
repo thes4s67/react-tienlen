@@ -1,4 +1,3 @@
-import { cards } from "./cards.js";
 import Deck from "./deck.js";
 import Player from "./player.js";
 
@@ -21,6 +20,10 @@ class Game {
     };
   }
   reset = () => {
+    //remove all remaining cards for each player
+    for (let i = 0; i < this.gameInfo.players.length; i++) {
+      this.gameInfo.players[i].cards = [];
+    }
     this.gameInfo = {
       ...this.gameInfo,
       lowestCard: null,
@@ -33,6 +36,36 @@ class Game {
       playersCards: {},
       winners: [],
     };
+  };
+  removePlayer = (idx) => {
+    console.log(idx);
+    //remove player from players arr
+    this.gameInfo.players = this.gameInfo.players.filter((c) => c.idx !== idx);
+    //update playerTurn
+    if (this.gameInfo.playerTurn === idx) {
+      const currIdx = this.gameInfo.seatingOrder.indexOf(idx);
+      this.gameInfo.playerTurn =
+        currIdx === this.gameInfo.seatingOrder.length - 1
+          ? this.gameInfo.seatingOrder[0]
+          : this.gameInfo.seatingOrder[currIdx + 1];
+    }
+    //check if its the firstHand, we need to update the new lowestCard
+    if (this.gameInfo.firstHand) {
+      let min = 20;
+      for (let i = 0; i < this.gameInfo.players.length; i++) {
+        const player = this.gameInfo.players[i];
+        const minCard = Math.min(...player.cards.map((c) => c));
+        if (minCard < min) this.setPlayerTurn(player.idx);
+        min = Math.min(min, minCard);
+      }
+      this.gameInfo.lowestCard = min;
+    }
+    //update seatingOrder
+    this.gameInfo.seatingOrder = this.gameInfo.seatingOrder.filter(
+      (c) => c !== idx
+    );
+    //update playersCards
+    delete this.gameInfo.playersCards[idx];
   };
   addPlayer = (p) => {
     if (this.gameInfo.players.length < 4) {
@@ -60,7 +93,8 @@ class Game {
   start = () => {
     //check how many players
     if (this.gameInfo.players.length > 1) {
-      const deck = new Deck(cards);
+      const deck = new Deck();
+      console.log(deck.remaining, `for ${this.code}`);
       //randomize the deck
       deck.shuffle();
       let pIdx = 0;

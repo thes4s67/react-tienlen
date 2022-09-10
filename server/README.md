@@ -15,10 +15,10 @@ Tien Len is a popular Vietnamese card game that is played with 2-4 players. The 
 
 ## Libraries/Frameworks
 
-- React/NextJS (frontend)
-- MUI (frontend)
-- Express (backend)
-- Socket.io (backend)
+- React/NextJS
+- MUI
+- Express
+- Socket.io
 
 ## Game Logic
 
@@ -28,7 +28,7 @@ The game logic "engine" consists of several parts: the `gameList`, `game`, `play
 - game - a class that holds the info for each individual game
 - player - a class that holds the info for each player such as player idx & cards
 - gameLogic - contains methods & functions to determine if a hand played is valid
-- cards - an array with 52 cards represented with their rank value and suit as a float. Example 3♠ is 3.1 and a 2♦ is 15.3. See more below on this logic
+- cards - an array with 52 cards represented with their rank value and suit as a float. Example 3♠ is 3.1 and a 2♥ is 15.4. See more below on this logic
 
 The card array uses a value classification for each card since in Tien Len the objective is to beat another opponent's hand with a higher rank and/or suit. In Tien Len, the cards are ranked & suits from lowest to highest: 3,4,5,6,7,8,9,10,J,Q,A,K,2 with suits ♠ ♣ ♦ ♥
 
@@ -47,5 +47,6 @@ This project makes no guarantees regarding game security or overall for that mat
 - Even if a user manages to modify the state or make a separate socket connection, the initial game info is/can be compared to see if the data matches.
 
 ## Todo
+
 - Spectate mode
 - Automatic wins

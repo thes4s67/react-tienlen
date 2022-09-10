@@ -66,7 +66,6 @@ const MessageBox = ({ code, gameInfo }) => {
           />
           <MessageWrapper
             placeholder="Write your message..."
-            autoFocus
             fullWidth
             inputProps={{ maxLength: 50 }}
             value={message}

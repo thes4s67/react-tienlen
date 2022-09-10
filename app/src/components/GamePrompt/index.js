@@ -4,7 +4,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Box,
 } from "@mui/material";
 
 const GamePrompt = ({ gameInfo }) => {

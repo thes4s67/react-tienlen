@@ -81,6 +81,7 @@ io.on("connection", (socket) => {
       game.reset();
     }
     game.start();
+    console.log(`Game ${args.code} started...`);
     //update to all players that game started
     io.in(args.code).emit("updateGameInfo", {
       started: true,
@@ -158,8 +159,8 @@ io.on("connection", (socket) => {
       valid = isValidFirstHand(hand, game.gameInfo);
     }
 
+    //if hand is valid & its the players turn
     if (valid) {
-      //if everything is correct
       game.gameInfo.prevHand = hand;
       game.gameInfo.prevHandPlayer = args.idx;
       game.gameInfo.firstHand = false;
@@ -167,11 +168,11 @@ io.on("connection", (socket) => {
       // console.log(game.gameInfo.playersCards[args.idx] - args.cards.length);
       game.gameInfo.playersCards[args.idx] =
         game.gameInfo.playersCards[args.idx] - args.cards.length;
-      console.log(
-        game.gameInfo.playersCards[args.idx],
-        args.cards.length,
-        "removing card"
-      );
+      // console.log(
+      //   game.gameInfo.playersCards[args.idx],
+      //   args.cards.length,
+      //   "removing card"
+      // );
       //update gameInfo
       io.in(args.code).emit("updateGameInfo", {
         prevHand: args.cards,
@@ -207,7 +208,7 @@ io.on("connection", (socket) => {
     } else {
       //This is not a valid hand
       io.to(socketId).emit("updatePlayerInfo", {
-        badPlay: true,
+        msg: "Invalid hand! Play another hand.",
       });
     }
   });
@@ -219,6 +220,38 @@ io.on("connection", (socket) => {
     });
   });
   socket.on("disconnect", (args) => {
-    console.log(socketId, "disconnected");
+    //check if this is a player in a game
+    const res = gamesList.findPlayerGame(socketId);
+    //player exists in a game -- remove player from game
+    if (res !== null && res.game.started) {
+      console.log(socketId, "disconnected and game found");
+      const { game, idx, id } = res;
+      //remove player: update seating order, players in game, playerTurn, playersCards
+      game.removePlayer(idx);
+      if (game.gameInfo.players.length > 1) {
+        for (let i = 0; i < game.gameInfo.players.length; i++) {
+          const player = game.gameInfo.players[i];
+          io.to(player.id).emit("updatePlayerInfo", {
+            seatingOrder: game.gameInfo.seatingOrder,
+            tableOrder: getTableOrder(player.idx, game.gameInfo.seatingOrder),
+            playersCards: game.gameInfo.playersCards,
+            players: game.gameInfo.players.length,
+            playerTurn: game.gameInfo.playerTurn,
+          });
+        }
+      }
+      //if playersLeft = 1: end game, update winner
+      if (game.gameInfo.players.length === 1) {
+        console.log("there is only 1 player left");
+        game.addWinner(game.gameInfo.players[0].idx);
+        io.in(game.code).emit("updateGameInfo", {
+          // seatingOrder: game.gameInfo.seatingOrder,
+          // tableOrder: getTableOrder(player.idx, game.gameInfo.seatingOrder),
+          players: game.gameInfo.players.length,
+          winners: game.gameInfo.winners,
+          gameEnd: true,
+        });
+      }
+    }
   });
 });

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -16,36 +16,31 @@ import MessageBox from "../../../src/components/Message";
 import { useSocket } from "../../../src/store/SocketContext";
 import useTimer from "../../../src/hooks/useTimer";
 import CloseIcon from "@mui/icons-material/Close";
-import WinnerBoard from "../../../src/components/GameTable/WinnerBoard";
-import ResetGame from "../../../src/components/GameTable/ResetGame";
 import GameInfo from "../../../src/components/GameTable/GameInfo";
 import {
   getPlayerNumber,
   getPlayerCards,
   getPlayerTurn,
 } from "../../../src/utils";
+import GameEndPrompt from "../../../src/components/GameTable/GameEndPrompt";
+import { getTopSize } from "../../../../server/utils";
 
 const GameRoom = ({ id }) => {
   const [gameInfo, setGameInfo] = useState({});
   const [cards, setCards] = useState([]);
   const [openError, setOpenError] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const { socket } = useSocket();
   const { startTimer, timer, setTimer } = useTimer(
     gameInfo.started,
-    gameInfo.firstHand
+    gameInfo.firstHand,
+    gameInfo.gameEnd
   );
   const theme = useTheme();
   const smallMedia = useMediaQuery(theme.breakpoints.down("sm"));
-  const ref = useRef();
-  const arrTest = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
   useEffect(() => {
-    console.log(
-      gameInfo,
-      "yourGameInfo, ref",
-      ref.current,
-      gameInfo.playerTurn
-    );
+    console.log(gameInfo, "yourGameInfo", gameInfo.playerTurn);
     if (Object.keys(gameInfo).length === 0) {
       socket.emit("getInitGameInfo", { code: id });
     }
@@ -56,7 +51,7 @@ const GameRoom = ({ id }) => {
     const updateEvent = (args, name, value) => {
       let temp = {};
       for (let [key, value] of Object.entries(args)) {
-        if (key !== "cards" && key !== "badPlay") {
+        if (key !== "cards" && key !== "msg") {
           temp = { ...temp, [key]: value };
         }
       }
@@ -72,7 +67,8 @@ const GameRoom = ({ id }) => {
       startTimer();
     });
     socket.on("updatePlayerInfo", (args) => {
-      if (args.badPlay !== undefined) {
+      if (args.msg !== undefined) {
+        setErrorMsg(args.msg);
         setOpenError(true);
       } else {
         updateEvent(args);
@@ -121,7 +117,6 @@ const GameRoom = ({ id }) => {
       ) : (
         <>
           <GameInfo gameInfo={gameInfo} timer={timer} />
-          {gameInfo.started ? <WinnerBoard winners={gameInfo.winners} /> : null}
           <Box
             id="game-board"
             sx={{
@@ -397,7 +392,7 @@ const GameRoom = ({ id }) => {
                 visibility: checkVisibility("bottom"),
                 // mt: smallMedia ? 5 : -6,
                 position: "relative",
-                top: smallMedia ? 40 : 20,
+                top: getTopSize(smallMedia, gameInfo.players),
               }}
             >
               <Box
@@ -479,28 +474,34 @@ const GameRoom = ({ id }) => {
             </Box>
           </Box>
 
-          {gameInfo.gameEnd ? (
-            <ResetGame socket={socket} gameInfo={gameInfo} id={id} />
-          ) : null}
           <MessageBox code={id} gameInfo={gameInfo} />
+          {gameInfo.gameEnd ? (
+            <GameEndPrompt
+              open={gameInfo.gameEnd}
+              gameInfo={gameInfo}
+              id={id}
+              socket={socket}
+            />
+          ) : null}
         </>
       )}
       <Snackbar
         open={openError}
         autoHideDuration={3000}
+        ContentProps={{ sx: { display: "block", textAlign: "center" } }}
         onClose={() => setOpenError(false)}
-        message="Invalid hand! Play another hand."
+        message={errorMsg}
         anchorOrigin={{ vertical: "botton", horizontal: "center" }}
-        action={
-          <IconButton
-            size="small"
-            aria-label="close"
-            color="inherit"
-            onClick={() => setOpenError(false)}
-          >
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        }
+        // action={
+        //   <IconButton
+        //     size="small"
+        //     aria-label="close"
+        //     color="inherit"
+        //     onClick={() => setOpenError(false)}
+        //   >
+        //     <CloseIcon fontSize="small" />
+        //   </IconButton>
+        // }
       />
     </>
   );

@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-const useTimer = (started, firstHand) => {
+const useTimer = (started, firstHand, gameEnd) => {
   const [timer, setTimer] = useState(40);
   useEffect(() => {
-    if (!timer || !started || firstHand) return;
+    if (!timer || !started || firstHand || gameEnd) return;
     const interval = setInterval(() => {
       setTimer(timer - 1);
     }, 1000);

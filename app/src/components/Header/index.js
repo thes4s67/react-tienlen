@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Head from "next/head";
 import {
   Box,
   Typography,
@@ -13,6 +14,18 @@ const Header = () => {
   const [open, setOpen] = useState(false);
   return (
     <>
+      <Head>
+        <title>Multiplayer Tien Len</title>
+        <meta
+          name="description"
+          content="Play Tien Len with your friends for free!"
+        />
+        <meta
+          name="keywords"
+          content="tien len,thirteen,vietnamese,vietnamese card game,card game,cards"
+        />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <Box
         sx={{
           display: "flex",
@@ -33,15 +46,15 @@ const Header = () => {
             p: 2.5,
           }}
         >
-          <img
-            style={{ color: "white" }}
-            src={"./media/logo.svg"}
-            height={50}
-            width={50}
-          />
-          <Typography variant="h6" sx={{ fontWeight: 700, ml: 2 }}>
-            Tien Len
-          </Typography>
+          <IconButton
+            sx={{ color: "white" }}
+            onClick={() => window.open(process.env.CLIENT_URL, "_self")}
+          >
+            <img src={"./media/logo.svg"} height={50} width={50} />
+            <Typography variant="h6" sx={{ fontWeight: 700, ml: 2 }}>
+              Tien Len
+            </Typography>
+          </IconButton>
         </Box>
         <Tooltip title="Show rules">
           <IconButton onClick={() => setOpen(true)}>
@@ -50,7 +63,7 @@ const Header = () => {
         </Tooltip>
       </Box>
       <Dialog fullScreen open={open} onClose={() => setOpen(false)}>
-        <Container sx={{ mt: 5 }}>
+        <Container sx={{ mt: 5, mb: 5 }}>
           <Box sx={{ color: "black" }}>
             <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
               <IconButton onClick={() => setOpen(false)}>
@@ -129,8 +142,8 @@ const Header = () => {
                 <br />
                 Pair Consecutive Sequence: Opponent plays 10♠ 10♣ & J♣ J♠ & Q
                 <span style={{ color: "red" }}>♦</span> Q♣, you can beat this
-                hand with any Pair Consecutive Sequence that is higher in rank and/or
-                suit & same length. Pair Consecutive Sequences must have{" "}
+                hand with any Pair Consecutive Sequence that is higher in rank
+                and/or suit & same length. Pair Consecutive Sequences must have{" "}
                 <b>at least 3</b> pairs (length). All pairs must have the same
                 rank.
                 <br />

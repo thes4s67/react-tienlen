@@ -14,7 +14,7 @@ const GameInfo = ({ gameInfo, timer }) => {
       }}
     >
       <Typography>Tien Len #{gameInfo.code}</Typography>
-      {gameInfo.started ? (
+      {gameInfo.started && !gameInfo.gameEnd ? (
         <Typography>
           {gameInfo.playerTurn === gameInfo.idx
             ? "Your turn"
