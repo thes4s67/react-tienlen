@@ -3,7 +3,7 @@ class Player {
     this.cards = [];
     this.idx = idx;
     this.id = id;
-    this.hand = [];
+    // this.hand = [];
   }
   giveCard = (card) => {
     this.cards.push(card);

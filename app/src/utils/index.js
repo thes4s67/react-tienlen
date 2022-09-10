@@ -26,19 +26,20 @@ export const getPlayerNumber = (tableOrder, pos) => {
   }
 };
 
-export const getPlayerCards = (playerCards, pos) => {
+export const getPlayerCards = (tableOrder, playerCards, pos) => {
   try {
+    const players = tableOrder.length + 1;
     let len = 0;
     if (pos === "top") {
-      if (players === 2) len = playerCards[0];
-      if (players === 4) len = playerCards[1];
+      if (players === 2) len = playerCards[tableOrder[0]];
+      if (players === 4) len = playerCards[tableOrder[1]];
     }
     if (pos === "left") {
-      if (players > 2) len = playerCards[0];
+      if (players > 2) len = playerCards[tableOrder[0]];
     }
     if (pos === "right") {
-      if (players === 3) len = playerCards[1];
-      if (players === 4) len = playerCards[2];
+      if (players === 3) len = playerCards[tableOrder[1]];
+      if (players === 4) len = playerCards[tableOrder[2]];
     }
     return [...new Array(len)];
   } catch (error) {

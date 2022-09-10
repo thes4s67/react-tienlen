@@ -8,7 +8,6 @@ import {
   isValidFirstHand,
   checkSum,
   getHandType,
-  getPlayersCards,
   getTableOrder,
 } from "./game/gameLogic.js";
 
@@ -47,12 +46,13 @@ io.on("connection", (socket) => {
     const game = new Game(socketId, args.code);
     game.addPlayer({ idx: 0, id: socketId });
     gamesList.addGame(game);
-    console.log(`Game ${args.code} started`, gamesList.games.length);
+    console.log(
+      `Game ${args.code} started - Total Games: ${gamesList.games.length}`
+    );
     socket.join(args.code);
     // console.log(gamesList, "games");
   });
   socket.on("getInitGameInfo", (args) => {
-    console.log("getting game info for...", socketId);
     const game = gamesList.checkGame(args.code, socketId);
     io.to(socketId).emit("initGameInfo", game);
   });
@@ -70,7 +70,7 @@ io.on("connection", (socket) => {
     const game = gamesList.findGame(args.code);
     if (game.gameInfo.winners.length === game.gameInfo.players.length - 1) {
       //reset game for new game
-      console.log("game is reset!");
+      console.log(`Game ${args.code} reset...`);
       game.reset();
     }
     game.start();
@@ -93,11 +93,7 @@ io.on("connection", (socket) => {
         }),
         idx: player.idx,
         tableOrder: getTableOrder(player.idx, game.gameInfo.seatingOrder),
-        playersCards: getPlayersCards(
-          args.idx,
-          game.gameInfo.seatingOrder,
-          game.gameInfo.playersCards
-        ),
+        playersCards: game.gameInfo.playersCards,
       });
     }
   });
@@ -110,6 +106,7 @@ io.on("connection", (socket) => {
           ? game.gameInfo.seatingOrder[0]
           : game.gameInfo.seatingOrder[currIdx + 1],
     });
+    io.in(args.code).emit("startTimer");
   });
   socket.on("playCard", (args) => {
     const game = gamesList.findGame(args.code);
@@ -121,7 +118,7 @@ io.on("connection", (socket) => {
       //check if its a "free hand", all players passed last hand
       if (game.gameInfo.prevHandPlayer === args.idx) {
         console.log("this is a free hand");
-        valid = getHandType(hand) !== "null";
+        valid = getHandType(hand) !== null;
       } else {
         const prevHand = game.gameInfo.prevHand;
         if (getHandType(hand) == getHandType(prevHand)) {
@@ -149,8 +146,8 @@ io.on("connection", (socket) => {
       }
     } else {
       //its the first hand
-      console.log("its the first hand");
-      console.log(isValidFirstHand(hand, game.gameInfo), "isValidFirstHand");
+      // console.log("its the first hand");
+      // console.log(isValidFirstHand(hand, game.gameInfo), "isValidFirstHand");
       valid = isValidFirstHand(hand, game.gameInfo);
     }
 
@@ -163,6 +160,11 @@ io.on("connection", (socket) => {
       // console.log(game.gameInfo.playersCards[args.idx] - args.cards.length);
       game.gameInfo.playersCards[args.idx] =
         game.gameInfo.playersCards[args.idx] - args.cards.length;
+      console.log(
+        game.gameInfo.playersCards[args.idx],
+        args.cards.length,
+        "removing card"
+      );
       //update gameInfo
       io.in(args.code).emit("updateGameInfo", {
         prevHand: args.cards,
@@ -182,22 +184,19 @@ io.on("connection", (socket) => {
           cards: player.cards.map((c) => {
             return { card: c, active: false };
           }),
-          playersCards: getPlayersCards(
-            args.idx,
-            game.gameInfo.seatingOrder,
-            game.gameInfo.playersCards
-          ),
+          playersCards: game.gameInfo.playersCards,
         });
       }
 
       if (player.cards.length === 0) {
         game.addWinner(args.idx);
-        io.to(args.code).emit("updateGameInfo", {
+        io.in(args.code).emit("updateGameInfo", {
           winners: game.gameInfo.winners,
           gameEnd:
             game.gameInfo.winners.length === game.gameInfo.players.length - 1,
         });
       }
+      io.in(args.code).emit("startTimer");
     } else {
       //This is not a valid hand
       io.to(socketId).emit("updatePlayerInfo", {
@@ -206,11 +205,13 @@ io.on("connection", (socket) => {
     }
   });
   socket.on("sendMessage", (args) => {
-    console.log(args, "we got a new message!");
     io.in(args.code).emit("newMessage", {
       gameCode: args.code,
       idx: args.idx,
       message: args.message,
     });
+  });
+  socket.on("disconnect", (args) => {
+    console.log(socketId, "disconnected");
   });
 });

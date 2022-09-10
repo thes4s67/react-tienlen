@@ -29,7 +29,8 @@ class Game {
       firstHand: true,
       prevHand: [],
       prevHandPlayer: null,
-      playersCards: [],
+      //this tracks the remaining cards left for each player
+      playersCards: {},
       winners: [],
     };
   };
@@ -62,11 +63,6 @@ class Game {
       const deck = new Deck(cards);
       //randomize the deck
       deck.shuffle();
-      // //create players for game
-      // for (let i = 0; i < this.init.length; i++) {
-      //   this.gameInfo.players.push(new Player(this.init[i].idx, this.init[i].name));
-      // }
-
       let pIdx = 0;
       let min = 20;
       //deal 1 card to each player at a time until each player has 13 cards
@@ -84,11 +80,12 @@ class Game {
       }
       //sort each players deck
       for (let i = 0; i < this.gameInfo.players.length; i++) {
-        let playerCards = this.gameInfo.players[i].cards;
+        const player = this.gameInfo.players[i];
+        let playerCards = player.cards;
         //add each player to seating arrangement
-        this.gameInfo.seatingOrder.push(this.gameInfo.players[i].idx);
-        this.gameInfo.players[i].cards = this.sort(playerCards);
-        this.gameInfo.playersCards.push(13);
+        this.gameInfo.seatingOrder.push(player.idx);
+        player.cards = this.sort(playerCards);
+        this.gameInfo.playersCards[player.idx] = 13;
       }
       this.gameInfo.deck = deck;
       this.gameInfo.lowestCard = min;

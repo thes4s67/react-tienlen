@@ -113,7 +113,8 @@ const isPairSequence = (tempHand) => {
   return true && arr.length >= 3;
 };
 
-export const getTableOrder = (idx, seatingOrder) => {
+export const getTableOrder = (pIdx, seatingOrder) => {
+  const idx = seatingOrder.indexOf(pIdx);
   const a = seatingOrder.slice(0, idx);
   const b = seatingOrder.slice(idx + 1, seatingOrder.length);
   return [...b, ...a];

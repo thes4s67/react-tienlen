@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
-  Container,
   Box,
   Button,
   Typography,
@@ -31,28 +30,28 @@ const GameRoom = ({ id }) => {
   const [cards, setCards] = useState([]);
   const [openError, setOpenError] = useState(false);
   const { socket } = useSocket();
-  const { resetTimer, timer } = useTimer(gameInfo.started);
+  const { startTimer, timer, setTimer } = useTimer(
+    gameInfo.started,
+    gameInfo.firstHand
+  );
   const theme = useTheme();
   const smallMedia = useMediaQuery(theme.breakpoints.down("sm"));
-  console.log(smallMedia, "smMedia");
+  const ref = useRef();
   const arrTest = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
   useEffect(() => {
-    console.log(gameInfo, "yourGameInfo");
+    console.log(
+      gameInfo,
+      "yourGameInfo, ref",
+      ref.current,
+      gameInfo.playerTurn
+    );
     if (Object.keys(gameInfo).length === 0) {
       socket.emit("getInitGameInfo", { code: id });
-    }
-    if (timer === 0) {
-      console.log("timer hit 0");
-      socket.emit("pass", { code: id, idx: gameInfo.playerTurn });
     }
     socket.on("initGameInfo", (args) => {
       setGameInfo(args);
     });
-    if (timer === 0) {
-      //pass
-      console.log("timer is 0");
-    }
     //functional update to prevent from multiple updates colliding
     const updateEvent = (args, name, value) => {
       let temp = {};
@@ -68,8 +67,9 @@ const GameRoom = ({ id }) => {
     };
     socket.on("updateGameInfo", (args) => {
       updateEvent(args);
-      console.log("is this called?");
-      resetTimer();
+    });
+    socket.on("startTimer", () => {
+      startTimer();
     });
     socket.on("updatePlayerInfo", (args) => {
       if (args.badPlay !== undefined) {
@@ -78,6 +78,11 @@ const GameRoom = ({ id }) => {
         updateEvent(args);
       }
     });
+    if (timer === 0) {
+      socket.emit("pass", { code: id, idx: gameInfo.playerTurn });
+      //set timer to -1 to prevent infinit loop
+      setTimer(-1);
+    }
   }, [socket, gameInfo, cards, timer]);
 
   const handlePlayCard = (i) => {
@@ -166,7 +171,11 @@ const GameRoom = ({ id }) => {
                   p: 5,
                 }}
               >
-                {getPlayerCards(gameInfo.playersCards, "top").map((c, i) => {
+                {getPlayerCards(
+                  gameInfo.tableOrder,
+                  gameInfo.playersCards,
+                  "top"
+                ).map((c, i) => {
                   return (
                     <BackOfCard
                       key={`p1-${i}`}
@@ -224,7 +233,11 @@ const GameRoom = ({ id }) => {
                     flexDirection: "column",
                   }}
                 >
-                  {getPlayerCards(gameInfo.playersCards, "left").map((c, i) => {
+                  {getPlayerCards(
+                    gameInfo.tableOrder,
+                    gameInfo.playersCards,
+                    "left"
+                  ).map((c, i) => {
                     return (
                       <BackOfCard
                         key={`left-${i}`}
@@ -252,6 +265,7 @@ const GameRoom = ({ id }) => {
                       const v = c.card.toString().split(".");
                       return (
                         <PlayCard
+                          key={`${gameInfo.idx}-${i}`}
                           value={Number(v[0])}
                           suit={Number(v[1])}
                           small={smallMedia}
@@ -270,9 +284,26 @@ const GameRoom = ({ id }) => {
                     }}
                   >
                     {gameInfo.players < 2 ? (
-                      <Typography variant="h6">
-                        Waiting for more players to join...
-                      </Typography>
+                      <>
+                        <Typography variant="h6" sx={{ textAlign: "center" }}>
+                          Waiting for more players to join...
+                        </Typography>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{ textAlign: "center" }}
+                        >
+                          Invite friends with code{" "}
+                          <span
+                            style={{
+                              borderRadius: 5,
+                              padding: 5,
+                              backgroundColor: "#11192a",
+                            }}
+                          >
+                            {id}
+                          </span>
+                        </Typography>
+                      </>
                     ) : gameInfo.isHost && gameInfo.players >= 2 ? (
                       <Button
                         variant="contained"
@@ -282,7 +313,7 @@ const GameRoom = ({ id }) => {
                         Start Game
                       </Button>
                     ) : (
-                      <Typography variant="h6">
+                      <Typography variant="h6" sx={{ textAlign: "center" }}>
                         Waiting for host to start game...
                       </Typography>
                     )}
@@ -343,18 +374,20 @@ const GameRoom = ({ id }) => {
                     flexDirection: "column",
                   }}
                 >
-                  {getPlayerCards(gameInfo.playersCards, "right").map(
-                    (c, i) => {
-                      return (
-                        <BackOfCard
-                          key={`right-${i}`}
-                          idx={i}
-                          side={true}
-                          small={smallMedia}
-                        />
-                      );
-                    }
-                  )}
+                  {getPlayerCards(
+                    gameInfo.tableOrder,
+                    gameInfo.playersCards,
+                    "right"
+                  ).map((c, i) => {
+                    return (
+                      <BackOfCard
+                        key={`right-${i}`}
+                        idx={i}
+                        side={true}
+                        small={smallMedia}
+                      />
+                    );
+                  })}
                 </Box>
               </Box>
             </Box>
@@ -362,7 +395,9 @@ const GameRoom = ({ id }) => {
               id="bottom-player"
               sx={{
                 visibility: checkVisibility("bottom"),
-                mt: smallMedia ? 5 : -6,
+                // mt: smallMedia ? 5 : -6,
+                position: "relative",
+                top: smallMedia ? 40 : -70,
               }}
             >
               <Box
@@ -454,7 +489,7 @@ const GameRoom = ({ id }) => {
         open={openError}
         autoHideDuration={3000}
         onClose={() => setOpenError(false)}
-        message="This is an invalid hand!"
+        message="Invalid hand! Play another hand."
         anchorOrigin={{ vertical: "botton", horizontal: "center" }}
         action={
           <IconButton

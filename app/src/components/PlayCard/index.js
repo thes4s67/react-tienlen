@@ -69,7 +69,7 @@ const PlayCard = ({ small, value, idx, suit, active, ...props }) => {
             display: "flex",
             alignItems: "center",
             p: 1,
-            mt: small ? -3.5 : -4.5,
+            mt: small ? -4.5 : -5.5,
             color: suit > 2 ? "red" : "black",
             fontWeight: 700,
           }}

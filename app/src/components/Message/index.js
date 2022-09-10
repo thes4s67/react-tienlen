@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import {
   Box,
-  TextField,
   Button,
   Popover,
   Typography,
   Avatar,
   styled,
   InputBase,
-  useTheme,
   Tooltip,
   IconButton,
 } from "@mui/material";
@@ -31,11 +29,9 @@ const MessageBox = ({ code, gameInfo }) => {
   const [anchorEl2, setAnchorEl2] = useState(null);
   const [messageHistory, setMessageHistory] = useState([]);
   const { socket } = useSocket();
-  const theme = useTheme();
 
   useEffect(() => {
     socket.on("newMessage", (args) => {
-      console.log(args, "we got a message");
       let tempHistory = messageHistory;
       tempHistory.push({ idx: args.idx, message: args.message });
       setMessageHistory(tempHistory);
@@ -70,14 +66,6 @@ const MessageBox = ({ code, gameInfo }) => {
             onChange={(e) => setMessage(e.target.value)}
           />
         </Box>
-        {/* <TextField
-          sx={{ backgroundColor: "#fff", flexGrow: 0.8 }}
-          placeholder="Type your message..."
-          inputProps={{ maxLength: 50 }}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        /> */}
-
         <Tooltip arrow placement="top" title={"Show emojis"}>
           <IconButton
             color="primary"
@@ -104,12 +92,14 @@ const MessageBox = ({ code, gameInfo }) => {
           variant="contained"
           sx={{ ml: 2 }}
           onClick={() => {
-            socket.emit("sendMessage", {
-              code,
-              idx: gameInfo.idx,
-              message,
-            });
-            setMessage("");
+            if (message !== "") {
+              socket.emit("sendMessage", {
+                code,
+                idx: gameInfo.idx,
+                message,
+              });
+              setMessage("");
+            }
           }}
         >
           Send
@@ -152,6 +142,7 @@ const MessageBox = ({ code, gameInfo }) => {
             {messageHistory.map((c, i) => {
               return (
                 <Box
+                  key={`message-${i}`}
                   sx={{
                     p: 2,
                     borderRadius: 2,

@@ -18,7 +18,6 @@ class GamesList {
     return null;
   };
   checkGame = (code, playerId) => {
-    //TODO:
     for (let i = 0; i < this.games.length; i++) {
       const game = this.games[i];
       if (game.code === code.toUpperCase()) {
@@ -26,7 +25,6 @@ class GamesList {
           exists: true,
           players: game.gameInfo.players.length,
           isHost: game.host === playerId,
-          //TODO: review this
           seated: game.host === playerId ? true : false,
           seatingOrder: [],
           started: game.started,

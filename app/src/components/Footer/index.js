@@ -14,14 +14,7 @@ const Footer = ({ mediaSize }) => {
           mt: 1.5,
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <Typography variant="h7">Multiplayer Tien Len</Typography>
+        <Box>
           <Typography variant="h7">By Sonny N</Typography>
         </Box>
         <Box

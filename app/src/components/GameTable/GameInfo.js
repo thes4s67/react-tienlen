@@ -19,7 +19,9 @@ const GameInfo = ({ gameInfo, timer }) => {
           {gameInfo.playerTurn === gameInfo.idx
             ? "Your turn"
             : `Waiting For Player ${gameInfo.playerTurn + 1}`}{" "}
-          {`(00:${timer < 10 ? `0${timer}` : timer})`}
+          {!gameInfo.firstHand && timer > 0
+            ? `(00:${timer < 10 ? `0${timer}` : timer})`
+            : null}
         </Typography>
       ) : null}
       <Typography>Players {gameInfo.players}/4</Typography>

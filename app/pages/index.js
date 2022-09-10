@@ -30,10 +30,14 @@ const Home = () => {
     <>
       <Grid container spacing={4} sx={{ alignItems: "center" }}>
         <Grid item xs={12} md={8}>
-          <Card>
+          <Card sx={{ backgroundColor: "#11192a", color: "white" }}>
             <CardHeader
               title="Multiplayer Tien Len"
-              subheader="Play for free with your friends"
+              subheader={
+                <span style={{ color: "white" }}>
+                  Play for free with your friends
+                </span>
+              }
             />
             <CardMedia
               component="img"
@@ -41,16 +45,19 @@ const Home = () => {
               image="/media/react-tien-len.png"
               alt="Paella dish"
             />
-            <CardContent>
-              <Typography variant="body2" color="text.secondary">
+            <CardContent sx={{ color: "white" }}>
+              <Typography variant="body2">
                 Tien Len is a popular Vietnamese card game. The goal is to get
                 rid of all your cards the quickest. <br />
+                <br />
                 <br />
                 Realtime multiplayer Tien Len with messaging!
                 <br />
                 Create or join a game and play with your friends!
               </Typography>
-              <Button sx={{ float: "right" }}>Learn the rules</Button>
+              <Typography sx={{ float: "right", mb: 1.5 }}>
+                Play with 2-4 players
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -88,7 +95,7 @@ const Home = () => {
                   value={value}
                   onChange={(e) => setValue(e.target.value.toUpperCase())}
                   inputProps={{ maxLength: 5 }}
-                  label="Game Room"
+                  label="Game Code"
                   variant="outlined"
                 />
                 <Button
@@ -103,7 +110,7 @@ const Home = () => {
                   {joinLoading ? (
                     <CircularProgress color="info" size="1.5rem" />
                   ) : (
-                    " Join Game"
+                    "Join"
                   )}
                 </Button>
               </Box>

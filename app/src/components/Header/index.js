@@ -19,20 +19,35 @@ const Header = () => {
           justifyContent: "space-between",
           color: "white",
           p: 2,
-          mb: 1.5,
+          mb: 3.5,
           height: 25,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Typography variant="h6">Multiplayer Tien Len</Typography>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            backgroundColor: "#11192a",
+            boxShadow: "#000000 0 0 7px",
+            borderRadius: 2,
+            p: 2.5,
+          }}
+        >
+          <img
+            style={{ color: "white" }}
+            src={"./media/logo.svg"}
+            height={50}
+            width={50}
+          />
+          <Typography variant="h6" sx={{ fontWeight: 700, ml: 2 }}>
+            Tien Len
+          </Typography>
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Tooltip title="Show rules">
-            <IconButton onClick={() => setOpen(true)}>
-              <QuestionMarkIcon sx={{ color: "white" }} />
-            </IconButton>
-          </Tooltip>
-        </Box>
+        <Tooltip title="Show rules">
+          <IconButton onClick={() => setOpen(true)}>
+            <QuestionMarkIcon sx={{ color: "white" }} />
+          </IconButton>
+        </Tooltip>
       </Box>
       <Dialog fullScreen open={open} onClose={() => setOpen(false)}>
         <Container sx={{ mt: 5 }}>
@@ -45,8 +60,10 @@ const Header = () => {
             <Box sx={{ mt: 2 }}>
               <Typography variant="h5">Intro</Typography>
               <Typography variant="subtitle2" sx={{ mt: 2 }}>
-                Tien Len is Vietnam's most popular card game. It means to{" "}
-                <b>Go Forward</b>. The card game is called Thirteen in English. The rules below are based on a popular variation of Tien Len. 
+                Tien Len is Vietnam<span>&lsquo;</span>s most popular card game.
+                It means to <b>Go Forward</b>. The card game is called Thirteen
+                in English. The rules below are based on a popular variation of
+                Tien Len.
               </Typography>
               <Typography variant="h5" sx={{ mt: 2 }}>
                 Game Play
@@ -55,10 +72,10 @@ const Header = () => {
                 The card game is played with 2-4 players with each player
                 receiving 13 cards out of a traditional 52 deck of cards. The
                 goal of the card game is to get rid of all your cards the
-                earliest by playing different combinations to beat your
-                opponent's hand. Each player gets a turn to play a higher hand
-                or pass in clockwise order. The player with the lowest card
-                starts the game.
+                earliest by playing different combinations to beat your opponent
+                <span>&lsquo;</span>s hand. Each player gets a turn to play a
+                higher hand or pass in clockwise order. The player with the
+                lowest card starts the game.
               </Typography>
               <Typography variant="subtitle2" sx={{ mt: 1 }}>
                 The card rank and suit matters in Tien Len. The lowest card is
@@ -72,7 +89,8 @@ const Header = () => {
               </Typography>
               <Typography variant="subtitle2" sx={{ mt: 2 }}>
                 The objective of the game is to play hands that beat your
-                opponent's hand. There are various ways to play a hand:
+                opponent<span>&lsquo;</span>s hand. There are various ways to
+                play a hand:
                 <br />
                 <br />
                 Singles: Opponent plays J♣, you can beat this hand with any
@@ -111,7 +129,7 @@ const Header = () => {
                 <br />
                 Pair Consecutive Sequence: Opponent plays 10♠ 10♣ & J♣ J♠ & Q
                 <span style={{ color: "red" }}>♦</span> Q♣, you can beat this
-                hand with any Pair Consecutive Sequence that is higher in rank &
+                hand with any Pair Consecutive Sequence that is higher in rank and/or
                 suit & same length. Pair Consecutive Sequences must have{" "}
                 <b>at least 3</b> pairs (length). All pairs must have the same
                 rank.
@@ -125,10 +143,12 @@ const Header = () => {
                 Sequence with a length of at least 3 pairs. Opponent plays 2♠ &
                 2<span style={{ color: "red" }}>♥</span>, you can beat this hand
                 with a Pair Consecutive Sequence that has a length of{" "}
-                <b>at least 4</b> pairs. Nothing can beat triple 2's. Four of a
-                Kind of 2's is an automatic win. You can also beat another
-                player's bomb as long as your bomb is greater in rank and/or
-                suit and their bomb is the same type of combination and length.
+                <b>at least 4</b> pairs. Nothing can beat triple 2
+                <span>&lsquo;</span>s. Four of a Kind of 2<span>&lsquo;</span>s
+                is an automatic win. You can also beat another player
+                <span>&lsquo;</span>s bomb as long as your bomb is greater in
+                rank and/or suit and their bomb is the same type of combination
+                and length.
               </Typography>
             </Box>
           </Box>

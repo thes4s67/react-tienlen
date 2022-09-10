@@ -1,20 +1,18 @@
-import { useEffect, useState, useCallback } from "react";
-const useTimer = (started) => {
+import { useEffect, useState, useCallback, useRef } from "react";
+const useTimer = (started, firstHand) => {
   const [timer, setTimer] = useState(40);
   useEffect(() => {
-    if (!timer || !started) return;
-    const interval = setInterval(() => {
-      setTimer(timer - 1);
-      console.log(timer, "called on hooks");
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [timer]);
+    // if (!timer || !started || firstHand) return;
+    // const interval = setInterval(() => {
+    //   setTimer(timer - 1);
+    // }, 1000);
+    // return () => clearInterval(interval);
+  }, [timer, started, firstHand]);
 
-  const resetTimer = useCallback(() => {
-    console.log("restTImer called");
+  const startTimer = useCallback(() => {
     setTimer(40);
   }, []);
-  return { resetTimer, timer };
+  return { startTimer, timer, setTimer };
 };
 
 export default useTimer;
