@@ -65,13 +65,10 @@ const GameRoom = ({ id }) => {
     socket.on("updateGameInfo", (args) => {
       updateEvent(args);
     });
-    // socket.on("startTimer", (args) => {
-    //   startTimer()
-    // })
-    socket.on("updateTimer", (args) => {
-      console.log("are we getting anything??", args);
-      setTimer(args.time);
-    });
+    // socket.on("updateTimer", (args) => {
+    //   // console.log("are we getting anything??", args);
+    //   // setTimer(args.time);
+    // });
     socket.on("updatePlayerInfo", (args) => {
       if (args.msg !== undefined) {
         setErrorMsg(args.msg);

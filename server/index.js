@@ -130,13 +130,7 @@ io.on("connection", (socket) => {
   });
   socket.on("playCard", async (args) => {
     const game = gamesList.findGame(args.code);
-    console.log(
-      "this is called, card played",
-      args.idx,
-      game.gameInfo.prevHand,
-      game.gameInfo.prevHandPlayer
-    );
-    if (timers.games[args.code].started) timers.stop(args.code);
+    // if (timers.games[args.code].started) timers.stop(args.code);
     let valid = false;
     const hand = args.cards;
     //Check if hand is valid
@@ -213,8 +207,9 @@ io.on("connection", (socket) => {
             game.gameInfo.winners.length === game.gameInfo.players.length - 1,
         });
       }
+      // console.log(game.gameInfo, "this is after valid hand");
       //start timer
-      timers.start(args.code, io);
+      // timers.start(args.code, io);
     } else {
       //This is not a valid hand
       // console.log(

@@ -32,6 +32,7 @@ class Game {
       lowestCard: null,
       deck: null,
       playerTurn: null,
+      seatingOrder: [],
       firstHand: true,
       prevHand: [],
       prevHandPlayer: null,

@@ -23,6 +23,17 @@ export const getPlayerTurn = (idx, gameInfo) => {
   const { seatingOrder, winners } = gameInfo;
   const newSeatingOrder = seatingOrder.filter((c) => !winners.includes(c));
   const currIdx = newSeatingOrder.indexOf(idx);
+  const nextTurn =
+    currIdx === newSeatingOrder.length - 1
+      ? newSeatingOrder[0]
+      : newSeatingOrder[currIdx + 1];
+  console.log(
+    `Next: ${nextTurn}`,
+    seatingOrder,
+    winners,
+    newSeatingOrder,
+    currIdx
+  );
   return currIdx === newSeatingOrder.length - 1
     ? newSeatingOrder[0]
     : newSeatingOrder[currIdx + 1];
