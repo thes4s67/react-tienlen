@@ -50,3 +50,4 @@ This project makes no guarantees regarding game security or overall for that mat
 
 - Spectate mode
 - Automatic wins
+- Timer (buggy at the moment)
