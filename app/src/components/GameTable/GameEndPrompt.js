@@ -11,12 +11,13 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  useTheme,
 } from "@mui/material";
 import { useRouter } from "next/router";
 
 const GameEndPrompt = ({ open, gameInfo, id, socket }) => {
   const route = useRouter();
-
+  const theme = useTheme();
   const renderWinners = () => {
     if (gameInfo && gameInfo.winners.length > 0) {
       return (
@@ -43,7 +44,7 @@ const GameEndPrompt = ({ open, gameInfo, id, socket }) => {
                           p: 0.5,
                           fontSize: 14,
                           fontWeight: 700,
-                          backgroundColor: "#11192a",
+                          backgroundColor: theme.palette.primary.main,
                         }}
                       >
                         {i + 1}

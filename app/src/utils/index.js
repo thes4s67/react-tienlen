@@ -6,6 +6,36 @@ export const getPlayerId = () => {
   return localStorage.getItem("playerId");
 };
 
+/* no longer needed
+export const getTopSize = (small, players, cards) => {
+  if (cards.length > 0) {
+    if (players === 2) return small ? 60 : 5;
+    if (players >= 3) return small ? 40 : -70;
+  } else {
+    if (players === 2) return small ? 60 : 5;
+    if (players >= 3) return small ? 100 : 100;
+  }
+}; */
+
+export const getPlayerPos = (tableOrder, playerIdx) => {
+  try {
+    const players = tableOrder.length + 1;
+    const tableIdx = tableOrder.indexOf(playerIdx);
+    if (players === 2) return "top";
+    if (players === 3) {
+      if (tableIdx === 0) return "left";
+      if (tableIdx === 1) return "right";
+    }
+    if (players === 4) {
+      if (tableIdx === 0) return "left";
+      if (tableIdx === 1) return "top";
+      if (tableIdx === 2) return "right";
+    }
+  } catch (error) {
+    return null;
+  }
+};
+
 export const getPlayerNumber = (tableOrder, pos) => {
   try {
     const players = tableOrder.length + 1;
@@ -48,7 +78,6 @@ export const getPlayerCards = (tableOrder, playerCards, pos) => {
   }
 };
 export const getPlayerTurn = (tableOrder, playerTurn, pos, players) => {
-  console.log(tableOrder, playerTurn, pos);
   try {
     if (pos === "top") {
       if (players === 2)

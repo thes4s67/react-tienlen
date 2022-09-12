@@ -5,7 +5,6 @@ import {
   Typography,
   Avatar,
   Snackbar,
-  IconButton,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
@@ -21,23 +20,26 @@ import {
   getPlayerNumber,
   getPlayerCards,
   getPlayerTurn,
+  getPlayerPos,
 } from "../../../src/utils";
 import GameEndPrompt from "../../../src/components/GameTable/GameEndPrompt";
-import { getTopSize } from "../../../../server/utils";
+import MessageBubble from "../../../src/components/Message/MessageBubble";
 
 const GameRoom = ({ id }) => {
   const [gameInfo, setGameInfo] = useState({});
   const [cards, setCards] = useState([]);
   const [openError, setOpenError] = useState(false);
+  const [message, setMessage] = useState({ pos: null, message: "" });
   const [errorMsg, setErrorMsg] = useState("");
+  const [timer, setTimer] = useState(null);
   const { socket } = useSocket();
-  const { startTimer, timer, setTimer } = useTimer(
-    gameInfo.started,
-    gameInfo.firstHand,
-    gameInfo.gameEnd
-  );
+  // const { startTimer, timer, setTimer } = useTimer(
+  //   gameInfo.started,
+  //   gameInfo.firstHand,
+  //   gameInfo.gameEnd
+  // );
   const theme = useTheme();
-  const smallMedia = useMediaQuery(theme.breakpoints.down("sm"));
+  const smallMedia = useMediaQuery(theme.breakpoints.down("md"));
 
   useEffect(() => {
     console.log(gameInfo, "yourGameInfo", gameInfo.playerTurn);
@@ -63,22 +65,43 @@ const GameRoom = ({ id }) => {
     socket.on("updateGameInfo", (args) => {
       updateEvent(args);
     });
-    socket.on("startTimer", () => {
-      startTimer();
+    // socket.on("startTimer", (args) => {
+    //   startTimer()
+    // })
+    socket.on("updateTimer", (args) => {
+      console.log("are we getting anything??", args);
+      setTimer(args.time);
     });
     socket.on("updatePlayerInfo", (args) => {
       if (args.msg !== undefined) {
         setErrorMsg(args.msg);
         setOpenError(true);
+        updateEvent(args);
       } else {
         updateEvent(args);
       }
     });
-    if (timer === 0) {
-      socket.emit("pass", { code: id, idx: gameInfo.playerTurn });
-      //set timer to -1 to prevent infinit loop
-      setTimer(-1);
-    }
+    socket.on("newMessage", (args) => {
+      if (args.idx === gameInfo.idx) {
+        setMessage({ pos: "bottom", message: args.message });
+      } else {
+        if (gameInfo.tableOrder) {
+          setMessage({
+            pos: getPlayerPos(gameInfo.tableOrder, args.idx),
+            message: args.message,
+          });
+        }
+      }
+      setTimeout(() => {
+        setMessage({ pos: null, message: "" });
+      }, 3800);
+    });
+    // if (gameInfo.playerTurn === gameInfo.idx && timer === 0) {
+    //   console.log("we are passing correctly");
+    //   setTimer(null);
+    //   socket.emit("pass", { code: id, idx: gameInfo.idx });
+    //   //set timer to -1 to auto skipping
+    // }
   }, [socket, gameInfo, cards, timer]);
 
   const handlePlayCard = (i) => {
@@ -122,7 +145,6 @@ const GameRoom = ({ id }) => {
             sx={{
               backgroundColor: "#308730",
               boxShadow: "#333 0 0 7px",
-              height: 650,
             }}
           >
             <Box
@@ -157,6 +179,7 @@ const GameRoom = ({ id }) => {
                   {getPlayerNumber(gameInfo.tableOrder, "top")}
                 </Typography>
               </Box>
+
               <Box
                 sx={{
                   display: "flex",
@@ -250,7 +273,7 @@ const GameRoom = ({ id }) => {
                   display: "flex",
                   flextDirection: "row",
                   alignItems: "center",
-                  mt: 4,
+                  mt: 10,
                   height: 235,
                 }}
               >
@@ -292,7 +315,7 @@ const GameRoom = ({ id }) => {
                             style={{
                               borderRadius: 5,
                               padding: 5,
-                              backgroundColor: "#11192a",
+                              backgroundColor: theme.palette.primary.main,
                             }}
                           >
                             {id}
@@ -390,9 +413,6 @@ const GameRoom = ({ id }) => {
               id="bottom-player"
               sx={{
                 visibility: checkVisibility("bottom"),
-                // mt: smallMedia ? 5 : -6,
-                position: "relative",
-                top: getTopSize(smallMedia, gameInfo.players),
               }}
             >
               <Box
@@ -423,6 +443,7 @@ const GameRoom = ({ id }) => {
                   display: "flex",
                   justifyContent: "space-evenly",
                   alignItems: "center",
+                  p: 2,
                 }}
               >
                 <Button
@@ -431,7 +452,8 @@ const GameRoom = ({ id }) => {
                   disabled={
                     gameInfo.firstHand ||
                     gameInfo.gameEnd ||
-                    gameInfo.playerTurn !== gameInfo.idx
+                    gameInfo.playerTurn !== gameInfo.idx ||
+                    gameInfo.prevHandPlayer == gameInfo.idx
                   }
                   onClick={() =>
                     socket.emit("pass", { code: id, idx: gameInfo.idx })
@@ -473,8 +495,14 @@ const GameRoom = ({ id }) => {
               </Box>
             </Box>
           </Box>
-
           <MessageBox code={id} gameInfo={gameInfo} />
+          {message.pos !== null ? (
+            <MessageBubble
+              pos={message.pos}
+              small={smallMedia}
+              message={message.message}
+            />
+          ) : null}
           {gameInfo.gameEnd ? (
             <GameEndPrompt
               open={gameInfo.gameEnd}

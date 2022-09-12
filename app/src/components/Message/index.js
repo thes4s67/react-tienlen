@@ -28,7 +28,7 @@ const MessageWrapper = styled(InputBase)(
 `
 );
 
-const MessageBox = ({ code, gameInfo }) => {
+const MessageBox = ({ code, gameInfo, small }) => {
   const [openChat, setOpenChat] = useState(false);
   const [openEmoji, setOpenEmoji] = useState(false);
   const [message, setMessage] = useState("");
@@ -74,6 +74,7 @@ const MessageBox = ({ code, gameInfo }) => {
         </Box>
         <Tooltip arrow placement="top" title={"Show emojis"}>
           <IconButton
+            sx={{ display: { xs: "none", sm: "block" } }}
             color="primary"
             onClick={(e) => {
               setAnchorEl2(e.currentTarget);
@@ -143,7 +144,12 @@ const MessageBox = ({ code, gameInfo }) => {
       >
         {messageHistory.length > 0 ? (
           <Box
-            sx={{ p: 2, height: 250, width: 500, backgroundColor: "#fbfbfb" }}
+            sx={{
+              p: 2,
+              maxHeight: 200,
+              width: 500,
+              backgroundColor: "#fbfbfb",
+            }}
           >
             {messageHistory.map((c, i) => {
               return (

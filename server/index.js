@@ -9,13 +9,16 @@ import {
   checkSum,
   getHandType,
   getTableOrder,
+  getPlayerTurn,
 } from "./game/gameLogic.js";
 import dotenv from "dotenv";
+import Timers from "./game/timers.js";
 
 dotenv.config();
 const app = express();
 app.use(express.json());
 const gamesList = new GamesList();
+const timers = new Timers();
 
 app.use(cors({ origin: process.env.CLIENT_URL }));
 const server = app.listen(process.env.PORT || 5001, () => {
@@ -51,6 +54,7 @@ io.on("connection", (socket) => {
   socket.io = io;
   socket.on("createGame", (args) => {
     const game = new Game(socketId, args.code);
+    timers.addTimer(args.code);
     game.addPlayer({ idx: 0, id: socketId });
     gamesList.addGame(game);
     console.log(
@@ -105,36 +109,48 @@ io.on("connection", (socket) => {
       });
     }
   });
-  socket.on("pass", (args) => {
+  socket.on("pass", async (args) => {
+    console.log(args, "passed");
     const game = gamesList.findGame(args.code);
-    const currIdx = game.gameInfo.seatingOrder.indexOf(args.idx);
-    io.in(args.code).emit("updateGameInfo", {
-      playerTurn:
-        currIdx === game.gameInfo.seatingOrder.length - 1
-          ? game.gameInfo.seatingOrder[0]
-          : game.gameInfo.seatingOrder[currIdx + 1],
-    });
-    io.in(args.code).emit("startTimer");
+    //confirm its the actual players turn
+    if (args.idx === game.gameInfo.playerTurn) {
+      const playerTurn = getPlayerTurn(args.idx, game.gameInfo);
+      game.gameInfo.playerTurn = playerTurn;
+      io.in(args.code).emit("updateGameInfo", {
+        playerTurn,
+      });
+      //we count the number of passes to determine if there should be a freeHand
+      game.gameInfo.passCount += 1;
+      if (game.gameInfo.passCount === game.gameInfo.players.length) {
+        game.gameInfo.freeHand = true;
+        game.gameInfo.passCount = 0;
+      }
+    }
+    // game.gameInfo.prevHandPlayer = args.idx;
   });
-  socket.on("playCard", (args) => {
+  socket.on("playCard", async (args) => {
     const game = gamesList.findGame(args.code);
+    console.log(
+      "this is called, card played",
+      args.idx,
+      game.gameInfo.prevHand,
+      game.gameInfo.prevHandPlayer
+    );
+    if (timers.games[args.code].started) timers.stop(args.code);
     let valid = false;
     const hand = args.cards;
-    //Check if hand is playable
+    //Check if hand is valid
     if (!game.gameInfo.firstHand) {
-      console.log("not a first hand");
-      //check if its a "free hand", all players passed last hand
-      if (game.gameInfo.prevHandPlayer === args.idx) {
-        console.log("this is a free hand");
+      //not first hand
+      if (game.gameInfo.prevHandPlayer === args.idx || game.gameInfo.freeHand) {
+        //"free hand", all players passed last hand
         valid = getHandType(hand) !== null;
       } else {
         const prevHand = game.gameInfo.prevHand;
         if (getHandType(hand) == getHandType(prevHand)) {
-          console.log("we checked if hand is equal");
           valid = hand.length === prevHand.length && checkSum(hand, prevHand);
         } else {
           //check if bomb
-          console.log("checking.. if bomb");
           const handType = getHandType(hand);
           if (
             (handType === "PairSquence" || handType === "Quad") &&
@@ -142,11 +158,9 @@ io.on("connection", (socket) => {
           ) {
             const handLen = handType === "Quad" ? 4 : hand.length / 2;
             if (prevHand.length === 1) {
-              console.log("last hand had one 2");
               valid = handLen >= 3 ? true : false;
             }
             if (prevHand.length === 2) {
-              console.log("last hand had dbl 2");
               valid = handLen > 3 && handType !== "Quad";
             }
           }
@@ -154,33 +168,28 @@ io.on("connection", (socket) => {
       }
     } else {
       //its the first hand
-      // console.log("its the first hand");
-      // console.log(isValidFirstHand(hand, game.gameInfo), "isValidFirstHand");
       valid = isValidFirstHand(hand, game.gameInfo);
     }
 
     //if hand is valid & its the players turn
-    if (valid) {
+    if (valid && args.idx === game.gameInfo.playerTurn) {
       game.gameInfo.prevHand = hand;
       game.gameInfo.prevHandPlayer = args.idx;
       game.gameInfo.firstHand = false;
-      const currIdx = game.gameInfo.seatingOrder.indexOf(args.idx);
-      // console.log(game.gameInfo.playersCards[args.idx] - args.cards.length);
       game.gameInfo.playersCards[args.idx] =
         game.gameInfo.playersCards[args.idx] - args.cards.length;
-      // console.log(
-      //   game.gameInfo.playersCards[args.idx],
-      //   args.cards.length,
-      //   "removing card"
-      // );
+      const playerTurn = getPlayerTurn(args.idx, game.gameInfo);
+      game.gameInfo.playerTurn = playerTurn;
+      if (game.gameInfo.freeHand) {
+        game.gameInfo.freeHand = false;
+        game.gameInfo.passCount = 0;
+      }
       //update gameInfo
       io.in(args.code).emit("updateGameInfo", {
         prevHand: args.cards,
+        prevHandPlayer: args.idx,
         firstHand: false,
-        playerTurn:
-          currIdx === game.gameInfo.seatingOrder.length - 1
-            ? game.gameInfo.seatingOrder[0]
-            : game.gameInfo.seatingOrder[currIdx + 1],
+        playerTurn,
       });
       //update playersHand
       const player = game.gameInfo.players.filter((c) => c.id === socketId)[0];
@@ -204,12 +213,25 @@ io.on("connection", (socket) => {
             game.gameInfo.winners.length === game.gameInfo.players.length - 1,
         });
       }
-      io.in(args.code).emit("startTimer");
+      //start timer
+      timers.start(args.code, io);
     } else {
       //This is not a valid hand
-      io.to(socketId).emit("updatePlayerInfo", {
-        msg: "Invalid hand! Play another hand.",
-      });
+      // console.log(
+      //   valid,
+      //   "should not be valid",
+      //   args.idx,
+      //   game.gameInfo.playerTurn
+      // );
+      if (!valid && args.idx === game.gameInfo.playerTurn) {
+        io.to(socketId).emit("updatePlayerInfo", {
+          msg: "Invalid hand! Play another hand.",
+        });
+      } else if (valid && args.idx !== game.gameInfo.playerTurn) {
+        io.to(socketId).emit("updatePlayerInfo", {
+          msg: "It is not your turn.",
+        });
+      }
     }
   });
   socket.on("sendMessage", (args) => {
@@ -229,14 +251,19 @@ io.on("connection", (socket) => {
       //remove player: update seating order, players in game, playerTurn, playersCards
       game.removePlayer(idx);
       if (game.gameInfo.players.length > 1) {
+        //update gameInfo
+        io.in(game.code).emit("updateGameInfo", {
+          seatingOrder: game.gameInfo.seatingOrder,
+          players: game.gameInfo.players.length,
+          playerTurn: game.gameInfo.playerTurn,
+          playersCards: game.gameInfo.playersCards,
+        });
+        //update each player
         for (let i = 0; i < game.gameInfo.players.length; i++) {
           const player = game.gameInfo.players[i];
           io.to(player.id).emit("updatePlayerInfo", {
-            seatingOrder: game.gameInfo.seatingOrder,
             tableOrder: getTableOrder(player.idx, game.gameInfo.seatingOrder),
-            playersCards: game.gameInfo.playersCards,
-            players: game.gameInfo.players.length,
-            playerTurn: game.gameInfo.playerTurn,
+            msg: `Player ${idx + 1} has left`,
           });
         }
       }

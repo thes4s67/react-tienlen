@@ -1,12 +1,13 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useTheme } from "@mui/material";
 const GameInfo = ({ gameInfo, timer }) => {
+  const theme = useTheme();
   return (
     <Box
       id="game-info"
       sx={{
         display: "flex",
-        backgroundColor: "#11192a",
-        boxShadow: "#11192a 0 0 7px",
+        backgroundColor: theme.palette.primary.main,
+        boxShadow: `${theme.palette.primary.main} 0 0 7px`,
         py: 1,
         px: 2,
         color: "#fff",

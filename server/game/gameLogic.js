@@ -1,23 +1,31 @@
-
 /* Checks if hand played is valid */
 export const isValidFirstHand = (hand, gameInfo) => {
-  console.log(
-    `Hand: ${hand}`,
-    ` Lowest Card: ${gameInfo.lowestCard}`,
-    ` Lowest Card Played: ${gameInfo.lowestCard === hand[0].card}`,
-    ` Hand type: ${getHandType(hand) !== null}`,
-    ` Hand name: ${getHandType(hand)}`
-  );
+  // console.log(
+  //   `Hand: ${hand}`,
+  //   ` Lowest Card: ${gameInfo.lowestCard}`,
+  //   ` Lowest Card Played: ${gameInfo.lowestCard === hand[0].card}`,
+  //   ` Hand type: ${getHandType(hand) !== null}`,
+  //   ` Hand name: ${getHandType(hand)}`
+  // );
   if (
     gameInfo.firstHand &&
     gameInfo.lowestCard === hand[0].card &&
     getHandType(hand) !== null
   ) {
-    console.log("this is a valid first hand");
+    // console.log("this is a valid first hand");
     return true;
   }
 
   return false;
+};
+
+export const getPlayerTurn = (idx, gameInfo) => {
+  const { seatingOrder, winners } = gameInfo;
+  const newSeatingOrder = seatingOrder.filter((c) => !winners.includes(c));
+  const currIdx = newSeatingOrder.indexOf(idx);
+  return currIdx === newSeatingOrder.length - 1
+    ? newSeatingOrder[0]
+    : newSeatingOrder[currIdx + 1];
 };
 
 export const checkSum = (hand, prev) => {
@@ -29,16 +37,16 @@ export const checkSum = (hand, prev) => {
     return Math.floor(c.card);
   });
   const prevHandSum = prevHand.reduce((a, b) => a + b);
-  console.log(tempHandSum, prevHandSum, "this is the sum checking");
+  // console.log(tempHandSum, prevHandSum, "this is the sum checking");
   //in case of same cards played, check for higher suit
   if (tempHandSum === prevHandSum) {
-    console.log(
-      `Hand LC: ${hand[hand.length - 1].card}`,
-      `PrevHand LC: ${prev[prev.length - 1].card}`
-    );
+    // console.log(
+    //   `Hand LC: ${hand[hand.length - 1].card}`,
+    //   `PrevHand LC: ${prev[prev.length - 1].card}`
+    // );
     const handLastSuit = hand[hand.length - 1].card.toString().split(".")[1];
     const prevLastSuit = prev[prev.length - 1].card.toString().split(".")[1];
-    console.log(handLastSuit, prevLastSuit, "same cards check suit");
+    // console.log(handLastSuit, prevLastSuit, "same cards check suit");
     return Number(handLastSuit) > Number(prevLastSuit);
   }
   return tempHandSum > prevHandSum;
@@ -48,30 +56,30 @@ export const getHandType = (hand) => {
   const tempHand = hand.map((c) => {
     return Math.floor(c.card);
   });
-  console.log(tempHand, "after reduced");
+  // console.log(tempHand, "after reduced");
   const tempHandSum = tempHand.reduce((a, b) => a + b);
   //single
   if (tempHand.length === 1) return "Single";
   if (tempHand.length >= 2) {
     //pairs, trips, quads
     if (tempHandSum / tempHand.length === tempHand[0]) {
-      console.log("checking if pairs, trips, or quads");
+      // console.log("checking if pairs, trips, or quads");
       if (tempHand.length === 2) return "Double";
       if (tempHand.length === 3) return "Triple";
       if (tempHand.length === 4) return "Quad";
     }
     //check if single sequence
     if (isSingleSequence(tempHand)) {
-      console.log("hand is a single sequence");
+      // console.log("hand is a single sequence");
       return "Sequence";
     }
     //check if pair sequence
     if (isPairSequence(tempHand)) {
-      console.log("hand is a pair sequence");
+      // console.log("hand is a pair sequence");
       return "PairSquence";
     }
   }
-  console.log("it actually gets to here");
+  // console.log("it actually gets to here");
   return null;
 };
 

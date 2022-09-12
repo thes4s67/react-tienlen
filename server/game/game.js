@@ -1,4 +1,5 @@
 import Deck from "./deck.js";
+import { getPlayerTurn } from "./gameLogic.js";
 import Player from "./player.js";
 
 class Game {
@@ -15,8 +16,10 @@ class Game {
       prevHand: [],
       prevHandPlayer: null,
       seatingOrder: [],
-      playersCards: [],
+      playersCards: {},
       winners: [],
+      passCount: 0,
+      freeHand: false,
     };
   }
   reset = () => {
@@ -35,19 +38,17 @@ class Game {
       //this tracks the remaining cards left for each player
       playersCards: {},
       winners: [],
+      passCount: 0,
+      freeHand: false,
     };
   };
   removePlayer = (idx) => {
-    console.log(idx);
     //remove player from players arr
     this.gameInfo.players = this.gameInfo.players.filter((c) => c.idx !== idx);
     //update playerTurn
     if (this.gameInfo.playerTurn === idx) {
-      const currIdx = this.gameInfo.seatingOrder.indexOf(idx);
-      this.gameInfo.playerTurn =
-        currIdx === this.gameInfo.seatingOrder.length - 1
-          ? this.gameInfo.seatingOrder[0]
-          : this.gameInfo.seatingOrder[currIdx + 1];
+      const playerTurn = getPlayerTurn(idx, this.gameInfo);
+      this.gameInfo.playerTurn = playerTurn;
     }
     //check if its the firstHand, we need to update the new lowestCard
     if (this.gameInfo.firstHand) {
@@ -66,6 +67,9 @@ class Game {
     );
     //update playersCards
     delete this.gameInfo.playersCards[idx];
+    //update passCount
+    const newPassCount = this.gameInfo.passCount - 1;
+    this.gameInfo.passCount = newPassCount > 0 ? newPassCount : 0;
   };
   addPlayer = (p) => {
     if (this.gameInfo.players.length < 4) {
@@ -94,7 +98,6 @@ class Game {
     //check how many players
     if (this.gameInfo.players.length > 1) {
       const deck = new Deck();
-      console.log(deck.remaining, `for ${this.code}`);
       //randomize the deck
       deck.shuffle();
       let pIdx = 0;
